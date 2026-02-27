@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Office Attendance Kiosk (Admin + Face Identification)
 
-## Getting Started
+Next.js app with:
+- Admin-only dashboard/login
+- Employee records (no employee passwords)
+- Kiosk clock in/out using liveness + face identification (1:N)
 
-First, run the development server:
+## Features
+
+- Public kiosk page at `/attendance`
+- Admin employee management at `/admin/enroll`
+  - Add employee profile (`name`, `email`, `phone`, `department`, `title`, `bio`)
+  - Enroll/delete employee face embedding
+- Admin attendance history at `/admin/history`
+- Privacy: embeddings only, no raw photos stored in DB
+
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind
+- Supabase Auth (admin login only)
+- Prisma + Postgres
+- face-api.js in browser
+- Zod validation + in-memory rate limiting
+
+## Environment
+
+Copy `.env.example` to `.env` and set values:
+
+```bash
+cp .env.example .env
+```
+
+Required:
+- `DATABASE_URL` (pooled runtime URL)
+- `DIRECT_URL` (direct DB URL for migrations)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ADMIN_EMAILS` (comma-separated admin emails)
+
+## Install
+
+```bash
+npm install
+```
+
+## Face Models
+
+Download models into `public/models`:
+
+```bash
+npm run models:download
+```
+
+Required files:
+- `tiny_face_detector_model-weights_manifest.json`
+- `tiny_face_detector_model-shard1`
+- `face_landmark_68_model-weights_manifest.json`
+- `face_landmark_68_model-shard1`
+- `face_recognition_model-weights_manifest.json`
+- `face_recognition_model-shard1`
+- `face_recognition_model-shard2`
+
+## Migrations
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Routes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+UI:
+- `/` admin login
+- `/attendance` office kiosk (no employee login)
+- `/admin/enroll` admin employee management + face enrollment
+- `/admin/history` admin attendance history
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+API:
+- `GET /api/me`
+- `PUT /api/me`
+- `GET /api/admin/employees`
+- `POST /api/admin/employees`
+- `PUT /api/admin/employees/:id`
+- `DELETE /api/admin/employees/:id`
+- `POST /api/admin/employees/:id/face`
+- `DELETE /api/admin/employees/:id/face`
+- `GET /api/admin/history`
+- `POST /api/kiosk/clock` body: `{ type: "CLOCK_IN" | "CLOCK_OUT", embedding: number[] }`
 
-## Learn More
+## Notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Kiosk mode uses face identification (1:N) by design.
+- If face is not recognized, API returns: `Face not recognized. Try again.`
+- If liveness fails, clock action is blocked.

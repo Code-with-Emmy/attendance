@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AttendanceType {
+  CLOCK_IN
+  CLOCK_OUT
+}
+
+model User {
+  id             String       @id @db.Uuid
+  email          String       @unique
+  name           String?
+  phone          String?
+  department     String?
+  title          String?
+  bio            String?
+  role           Role         @default(USER)
+  faceEmbedding  Json?
+  faceEnrolledAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Employee {
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String
+  email          String?      @unique
+  phone          String?
+  department     String?
+  title          String?
+  bio            String?
+  faceEmbedding  Json?
+  faceEnrolledAt DateTime?
+  attendances    Attendance[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Attendance {
+  id        String         @id @default(uuid()) @db.Uuid
+  employeeId String        @db.Uuid
+  type      AttendanceType
+  timestamp DateTime       @default(now())
+  distance  Float
+  userAgent String?
+  createdAt DateTime       @default(now())
+  employee  Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([timestamp])
+}

@@ -1,65 +1,120 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
+
+export default function HomePage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/admin/enroll");
+      }
+    });
+  }, [router, supabase.auth]);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) {
+        throw signInError;
+      }
+      router.replace("/admin/enroll");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Authentication failed.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-10 lg:px-6">
+      <section className="glass-card reveal grid gap-8 rounded-[2rem] p-6 md:p-8 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="space-y-6">
+          <p className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-cyan-700">
+            {BRAND_COMPANY}
           </p>
+          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[var(--ink-strong)] md:text-5xl">
+            {BRAND_PRODUCT}
+            <span className="block text-2xl font-semibold text-[var(--ink-soft)] md:text-3xl">Professional Face Attendance Platform</span>
+          </h1>
+          <p className="max-w-2xl text-[15px] leading-7 text-[var(--ink-soft)]">
+            Employees do not use app accounts. Admin manages employee details and face enrollment, then staff use the office kiosk for
+            liveness + face clock in/out.
+          </p>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Link href="/attendance" className="display-card rounded-2xl p-4 text-sm transition hover:-translate-y-0.5">
+              <p className="font-bold text-[var(--ink-strong)]">/attendance</p>
+              <p className="mt-1 text-[var(--ink-soft)]">Kiosk mode</p>
+            </Link>
+            <Link href="/admin/enroll" className="display-card rounded-2xl p-4 text-sm transition hover:-translate-y-0.5">
+              <p className="font-bold text-[var(--ink-strong)]">/admin/enroll</p>
+              <p className="mt-1 text-[var(--ink-soft)]">Employees</p>
+            </Link>
+            <Link href="/admin/history" className="display-card rounded-2xl p-4 text-sm transition hover:-translate-y-0.5">
+              <p className="font-bold text-[var(--ink-strong)]">/admin/history</p>
+              <p className="mt-1 text-[var(--ink-soft)]">Audit + Export</p>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <form onSubmit={onSubmit} className="display-card rounded-3xl p-6 md:p-7">
+          <h2 className="text-2xl font-bold text-[var(--ink-strong)]">Admin Sign In</h2>
+          <p className="mt-2 text-sm text-[var(--ink-soft)]">Use your admin credentials to manage employees and attendance records.</p>
+
+          <div className="mt-5 space-y-4">
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-semibold text-[var(--ink-strong)]">Email</span>
+              <input
+                className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-2.5 text-[var(--ink-strong)] outline-none transition focus:border-cyan-500"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                required
+              />
+            </label>
+
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-semibold text-[var(--ink-strong)]">Password</span>
+              <input
+                className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-2.5 text-[var(--ink-strong)] outline-none transition focus:border-cyan-500"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                minLength={6}
+                required
+              />
+            </label>
+          </div>
+
+          {error && <p className="mt-4 rounded-2xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+
+          <button type="submit" disabled={loading} className="btn-solid btn-main mt-5 w-full">
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }

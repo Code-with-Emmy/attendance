@@ -1,0 +1,549 @@
+{
+  "users": [
+    {
+      "id": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "name": "Admin",
+      "email": "admin@example.com",
+      "password_hash": "scrypt:3wvrLQ8DsR4wZkaLSc1jbQ==:Ky9RA+NiGILBGb98JYszd1lMm73WgOkkECm24mtDRy7KGWIsjxiEfMkdSU8zcLYhlHOd5IeamWcthmHxRBPADw==",
+      "role": "admin",
+      "employee_id": null,
+      "created_at": "2026-02-26T10:11:39.548Z"
+    },
+    {
+      "id": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "name": "Admin",
+      "email": "admin@aierth.com",
+      "password_hash": "scrypt:8xXfmECv/z+UBCIWQWGeEg==:N52mRyjyHuRii4vDgkCCTgBaRAmdREwHpHKhqfXDASLQR4S6+YxP4HTqI3k1RmmnhRDpw1Yvs7VDmka+xbQ/dQ==",
+      "role": "admin",
+      "employee_id": null,
+      "created_at": "2026-02-26T17:36:26.760Z"
+    }
+  ],
+  "employees": [
+    {
+      "id": "3ef0cd46-2a5b-4bf3-8bde-a9857d1feb44",
+      "name": "Victor Uchechukwu Chidera",
+      "email": "chidera@aierth.com",
+      "created_at": "2026-02-26T18:09:57.966Z"
+    },
+    {
+      "id": "38741102-c6e4-417a-9f6f-3ce1a1023e0a",
+      "name": "Chinedu Osuagwu",
+      "email": "chinedu@aierth.com",
+      "created_at": "2026-02-26T18:10:37.017Z"
+    },
+    {
+      "id": "4e610d98-222c-4851-9d30-ebf0664e3fd5",
+      "name": "Osuagwu Emmanuel",
+      "email": "osuagwu@aierth.com",
+      "created_at": "2026-02-26T18:12:43.584Z"
+    },
+    {
+      "id": "d86be160-a23f-47b2-99ce-0b5b2af9abc8",
+      "name": "Mr Davis",
+      "email": "davis@aierth.com",
+      "created_at": "2026-02-26T18:13:18.227Z"
+    },
+    {
+      "id": "868b264f-19ce-4750-8911-a0962500a8bb",
+      "name": "Chidiebere Emmanuel",
+      "email": "chidebere@aierth.com",
+      "created_at": "2026-02-26T18:13:38.534Z"
+    }
+  ],
+  "attendance": [],
+  "audit": [
+    {
+      "id": "c748678a-af07-4f4d-a5f0-f81a9a2b5937",
+      "ts": "2026-02-26T10:37:21.155Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "d2bde9ae-13c9-483a-8581-f2f05beb89fe",
+      "ts": "2026-02-26T10:37:25.879Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "4626e15b-7a60-49c9-b09b-0626b4f649f1",
+      "ts": "2026-02-26T10:37:27.924Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "fafe3822-ef43-47af-ae81-19d70b99b035",
+      "ts": "2026-02-26T10:37:38.378Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "f11c3acb-ce4f-4266-bb61-81098bfdbd56",
+      "ts": "2026-02-26T10:37:39.173Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "290c9234-000e-4cf2-a78d-922ab29f2bc1",
+      "ts": "2026-02-26T10:37:40.091Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "0f815b40-1f50-40fb-be64-c06293362a8c",
+      "ts": "2026-02-26T10:37:40.806Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "6b3c7f99-deb1-4128-8faf-c858ebeffd7a",
+      "ts": "2026-02-26T10:37:45.106Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "98a080a2-3f04-478b-a6ce-e221b3b24606",
+      "ts": "2026-02-26T10:37:45.873Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "8b8c6b17-9fc8-4d41-80e8-ed1e99cecde6",
+      "ts": "2026-02-26T10:37:47.089Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "dfb5bd30-f59c-4776-bd03-fd1425d955b6",
+      "ts": "2026-02-26T10:37:47.772Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "844d311a-257d-4c48-9ef6-33fe66c576f4",
+      "ts": "2026-02-26T10:37:48.755Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "b7af7582-fa5b-4b62-be43-d2d92be48b58",
+      "ts": "2026-02-26T10:37:56.458Z",
+      "action": "employee:create",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "note": "Chinedu",
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "a6c9c21e-617a-4682-87a4-72397475ed08",
+      "ts": "2026-02-26T10:37:59.856Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "54bd53f7-5233-4c15-924d-f0fb7544ae72",
+      "ts": "2026-02-26T10:47:58.774Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "4a549ce1-638a-4ed3-8211-6e0f50276640",
+      "ts": "2026-02-26T10:48:00.954Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "a9148f18-dbfd-4f36-9ee9-eaa0f034a5d2",
+      "ts": "2026-02-26T11:19:30.676Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "35f0bbde-f3ef-47e7-9148-9695fdc542d8",
+      "ts": "2026-02-26T11:19:34.896Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "171bbc18-ae37-4ffd-836d-295cc9a09b0d",
+      "ts": "2026-02-26T12:05:51.149Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "b26cd4b9-20b0-46b5-a8e3-ae357a070dde",
+      "ts": "2026-02-26T12:05:53.531Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "6582794c-a2c7-46ac-95fd-e2f49f8db6ff",
+      "ts": "2026-02-26T13:07:40.477Z",
+      "action": "employee:create",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "194d0df5-87f4-4c9f-b716-a79fe1fb4579",
+      "note": "Chidiebere Emmanuel",
+      "targetEmployeeName": "Chidiebere Emmanuel"
+    },
+    {
+      "id": "8479fc1b-6fc7-4c7b-82b2-b55f3ace4fb7",
+      "ts": "2026-02-26T13:07:53.737Z",
+      "action": "employee:create",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "87759af3-aa12-40f4-84b6-40b3c70ab7f4",
+      "note": "Mr Devis",
+      "targetEmployeeName": "Mr Devis"
+    },
+    {
+      "id": "e0395d5b-2b66-4366-84ca-51a280937c85",
+      "ts": "2026-02-26T13:08:10.989Z",
+      "action": "employee:create",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "acb8aad1-e100-4c11-80e9-4584de3ada21",
+      "note": "Chidera",
+      "targetEmployeeName": "Chidera"
+    },
+    {
+      "id": "63c8d760-5820-45e9-afd1-a987ad5e4c63",
+      "ts": "2026-02-26T13:09:52.259Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "b1a4dd53-d14c-4eb6-bbe9-c18c0816ef10",
+      "ts": "2026-02-26T13:09:53.502Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "6922f014-fd2b-4be9-adc1-103828178838",
+      "ts": "2026-02-26T13:09:54.703Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "194d0df5-87f4-4c9f-b716-a79fe1fb4579",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chidiebere Emmanuel"
+    },
+    {
+      "id": "78a1d3a7-7da0-40c1-9130-b9b9015982ba",
+      "ts": "2026-02-26T13:09:55.636Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "87759af3-aa12-40f4-84b6-40b3c70ab7f4",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Mr Devis"
+    },
+    {
+      "id": "03e786a3-dab4-477a-a405-70bde27e23d7",
+      "ts": "2026-02-26T13:09:57.137Z",
+      "action": "attendance:checkin",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "acb8aad1-e100-4c11-80e9-4584de3ada21",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chidera"
+    },
+    {
+      "id": "4bd55d3f-205a-49c1-bcdb-f27777cb9467",
+      "ts": "2026-02-26T17:34:06.739Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "222ecf8a-5a71-4fb8-8040-b533bafb546e",
+      "ts": "2026-02-26T17:34:08.257Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chinedu"
+    },
+    {
+      "id": "6ec77813-b766-4898-bee8-3516435cd50d",
+      "ts": "2026-02-26T17:34:10.589Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "194d0df5-87f4-4c9f-b716-a79fe1fb4579",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chidiebere Emmanuel"
+    },
+    {
+      "id": "e9b15813-3be9-42d8-9dba-fce8a45599c5",
+      "ts": "2026-02-26T17:34:12.140Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "87759af3-aa12-40f4-84b6-40b3c70ab7f4",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Mr Devis"
+    },
+    {
+      "id": "8c1c1fcb-e3ff-4e29-9742-43643e8f4ce9",
+      "ts": "2026-02-26T17:34:15.033Z",
+      "action": "attendance:checkout",
+      "actorUserId": "f5db271d-584f-4550-81be-e1b9d107d49f",
+      "targetEmployeeId": "acb8aad1-e100-4c11-80e9-4584de3ada21",
+      "metadata": {
+        "lat": null,
+        "lng": null
+      },
+      "targetEmployeeName": "Chidera"
+    },
+    {
+      "id": "9200bd60-d3b1-4f04-bb6d-279ffd3003cc",
+      "ts": "2026-02-26T17:36:26.781Z",
+      "action": "user:seed-admin",
+      "actorUserId": null,
+      "targetEmployeeId": null,
+      "note": "admin@aierth.com"
+    },
+    {
+      "id": "0a3a8b2f-6a63-4fa5-8c8c-2cffc31ec28f",
+      "ts": "2026-02-26T18:09:06.824Z",
+      "action": "employee:delete",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "acb8aad1-e100-4c11-80e9-4584de3ada21",
+      "targetEmployeeName": "Chidera",
+      "note": "Chidera",
+      "metadata": {
+        "removedAttendanceCount": 1
+      }
+    },
+    {
+      "id": "ffc88e20-803d-4701-b569-a48241339693",
+      "ts": "2026-02-26T18:09:57.966Z",
+      "action": "employee:create",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "3ef0cd46-2a5b-4bf3-8bde-a9857d1feb44",
+      "note": "Victor Uchechukwu Chidera"
+    },
+    {
+      "id": "248a2fa4-d939-4d4d-8e12-380eb4bedeab",
+      "ts": "2026-02-26T18:10:37.017Z",
+      "action": "employee:create",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "38741102-c6e4-417a-9f6f-3ce1a1023e0a",
+      "note": "Chinedu Osuagwu"
+    },
+    {
+      "id": "10ac9620-b3b1-4691-b3ae-5a3ade5d35e0",
+      "ts": "2026-02-26T18:10:44.374Z",
+      "action": "employee:delete",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "30ac8e26-da49-4bff-94dd-8854be0a5102",
+      "targetEmployeeName": "Chinedu",
+      "note": "Chinedu",
+      "metadata": {
+        "removedAttendanceCount": 3
+      }
+    },
+    {
+      "id": "d2da3918-7cc5-461b-8ab4-073a3d8cd140",
+      "ts": "2026-02-26T18:12:18.454Z",
+      "action": "employee:delete",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "5977d418-367c-4a6c-b101-4c2546719828",
+      "targetEmployeeName": "Osuagwu Emmanuel",
+      "note": "Osuagwu Emmanuel",
+      "metadata": {
+        "removedAttendanceCount": 10
+      }
+    },
+    {
+      "id": "ae951dc5-0471-4bf8-8f0c-3ba6671ed69b",
+      "ts": "2026-02-26T18:12:43.584Z",
+      "action": "employee:create",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "4e610d98-222c-4851-9d30-ebf0664e3fd5",
+      "note": "Osuagwu Emmanuel"
+    },
+    {
+      "id": "2bc3a56a-580a-434c-aa47-0b7c5b4c7164",
+      "ts": "2026-02-26T18:12:56.875Z",
+      "action": "employee:delete",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "87759af3-aa12-40f4-84b6-40b3c70ab7f4",
+      "targetEmployeeName": "Mr Devis",
+      "note": "Mr Devis",
+      "metadata": {
+        "removedAttendanceCount": 1
+      }
+    },
+    {
+      "id": "e0f8556a-d251-4ae1-973d-499375ae101e",
+      "ts": "2026-02-26T18:13:18.227Z",
+      "action": "employee:create",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "d86be160-a23f-47b2-99ce-0b5b2af9abc8",
+      "note": "Mr Davis"
+    },
+    {
+      "id": "35e2c54d-b555-4508-b843-daddc2fef0e9",
+      "ts": "2026-02-26T18:13:25.336Z",
+      "action": "employee:delete",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "194d0df5-87f4-4c9f-b716-a79fe1fb4579",
+      "targetEmployeeName": "Chidiebere Emmanuel",
+      "note": "Chidiebere Emmanuel",
+      "metadata": {
+        "removedAttendanceCount": 1
+      }
+    },
+    {
+      "id": "938b1cbf-8849-4238-923d-a189733d9658",
+      "ts": "2026-02-26T18:13:38.534Z",
+      "action": "employee:create",
+      "actorUserId": "10a9cc6c-0431-49e0-b4ca-4fe5a1e1296d",
+      "targetEmployeeId": "868b264f-19ce-4750-8911-a0962500a8bb",
+      "note": "Chidiebere Emmanuel"
+    }
+  ]
+}

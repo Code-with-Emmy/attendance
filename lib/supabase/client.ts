@@ -2,7 +2,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let browserClient: SupabaseClient | null = null;
 
-export function getSupabaseBrowserClient(): SupabaseClient {
+export function getSupabaseBrowserClient(): SupabaseClient | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   if (browserClient) {
     return browserClient;
   }
@@ -11,7 +15,7 @@ export function getSupabaseBrowserClient(): SupabaseClient {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    return null;
   }
 
   browserClient = createClient(url, anonKey, {

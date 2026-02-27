@@ -11,6 +11,9 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   if (!token && requireAuth) {
     const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
     const { data } = await supabase.auth.getSession();
     token = data.session?.access_token;
   }

@@ -17,12 +17,12 @@ export default function HomePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    try {
-      setSupabase(getSupabaseBrowserClient());
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to initialize auth client.";
-      setError(message);
+    const client = getSupabaseBrowserClient();
+    if (!client) {
+      setError("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      return;
     }
+    setSupabase(client);
   }, []);
 
   useEffect(() => {

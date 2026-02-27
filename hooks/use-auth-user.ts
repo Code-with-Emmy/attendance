@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { apiFetch } from "@/lib/client/api";
 
@@ -20,7 +20,7 @@ export type AppUser = {
 
 export function useAuthUser(options?: { requireAdmin?: boolean }) {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
   const [session, setSession] = useState<Session | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
@@ -55,6 +55,20 @@ export function useAuthUser(options?: { requireAdmin?: boolean }) {
   );
 
   useEffect(() => {
+    try {
+      setSupabase(getSupabaseBrowserClient());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to initialize auth client.";
+      setError(message);
+      setSessionReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     let mounted = true;
 
     void supabase.auth
@@ -88,7 +102,7 @@ export function useAuthUser(options?: { requireAdmin?: boolean }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadUser, supabase.auth]);
+  }, [loadUser, supabase]);
 
   useEffect(() => {
     if (!sessionReady) {
@@ -111,11 +125,13 @@ export function useAuthUser(options?: { requireAdmin?: boolean }) {
   }, [options?.requireAdmin, router, user]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
     setSession(null);
     router.replace("/");
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   return {
     session,

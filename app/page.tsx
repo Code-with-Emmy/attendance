@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
 
 export default function HomePage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,15 +17,32 @@ export default function HomePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    try {
+      setSupabase(getSupabaseBrowserClient());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to initialize auth client.";
+      setError(message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         router.replace("/admin/enroll");
       }
     });
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!supabase) {
+      setError("Auth client is not ready.");
+      return;
+    }
     setLoading(true);
     setError("");
 

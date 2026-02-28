@@ -8,21 +8,19 @@ type Props = {
   error?: string;
 };
 
-export function CameraPanel({ videoRef, ready, error }: Props) {
+export function CameraPanel({ videoRef }: Props) {
   return (
-    <section className="glass-card reveal rounded-3xl p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-[var(--ink-strong)]">Camera Preview</h2>
-        <span className={`status-chip ${error ? "status-warn" : ready ? "status-ok" : "status-warn"}`}>
-          {error ? "Camera Error" : ready ? "Camera Ready" : "Starting"}
-        </span>
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-slate-950 shadow-inner">
-        <video ref={videoRef} muted playsInline autoPlay className="aspect-video w-full object-cover" />
-      </div>
-      <p className="mt-3 text-sm text-[var(--ink-soft)]">
-        {error ? error : ready ? "Camera ready." : "Starting camera..."}
-      </p>
-    </section>
+    <div className="relative h-full w-full overflow-hidden bg-black">
+      {/* Cinematic Tint Layer */}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_30%_30%,rgba(0,102,255,0.1),transparent_50%),radial-gradient(circle_at_70%_70%,rgba(0,184,148,0.08),transparent_50%)] mix-blend-screen opacity-50" />
+
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        autoPlay
+        className="h-full w-full object-cover scale-x-[-1]"
+      />
+    </div>
   );
 }

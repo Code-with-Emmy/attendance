@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --font-sans: "Sora", "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+  --font-sans: var(--font-lato), "Sora", "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "SF Mono", "Menlo", monospace;
   --bg-base: #f2f6f9;
   --ink-strong: #0e1f2f;
@@ -13,17 +13,30 @@
   --accent-2: #00b894;
   --warn: #ff8a00;
   --danger: #d92d20;
+  --panel-glow: 0 25px 55px rgba(0, 67, 134, 0.14);
 }
 
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 6% 8%, rgba(0, 102, 255, 0.2), transparent 26%),
+    radial-gradient(circle at 6% 8%, rgba(0, 102, 255, 0.22), transparent 26%),
     radial-gradient(circle at 88% 7%, rgba(0, 184, 148, 0.16), transparent 27%),
-    radial-gradient(circle at 78% 88%, rgba(255, 138, 0, 0.15), transparent 34%),
-    linear-gradient(180deg, #f8fbfd 0%, var(--bg-base) 100%);
+    radial-gradient(circle at 78% 88%, rgba(255, 138, 0, 0.14), transparent 34%),
+    linear-gradient(180deg, #f9fbff 0%, #f3f7fb 65%, var(--bg-base) 100%);
   font-family: var(--font-sans);
   color: var(--ink-strong);
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 184, 148, 0.06) 35%, rgba(255, 138, 0, 0.05) 70%, transparent 100%),
+    repeating-linear-gradient(135deg, rgba(12, 18, 31, 0.035), rgba(12, 18, 31, 0.035) 2px, transparent 2px, transparent 14px);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .font-mono {
@@ -79,7 +92,9 @@ body {
   background: var(--panel);
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.06),
-    0 14px 34px rgba(15, 23, 42, 0.09);
+    0 14px 34px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    var(--panel-glow);
   backdrop-filter: blur(12px);
 }
 
@@ -130,8 +145,8 @@ body {
 }
 
 .btn-main:hover:enabled {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 102, 255, 0.25);
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 10px 22px rgba(0, 102, 255, 0.28);
 }
 
 .btn-neutral {
@@ -160,4 +175,42 @@ body {
   border: 1px solid rgba(217, 45, 32, 0.28);
   background: rgba(217, 45, 32, 0.08);
   color: #b42318;
+}
+
+.text-fluid-h1 {
+  font-size: clamp(2.5rem, 8vw, 6rem);
+}
+
+.text-fluid-p {
+  font-size: clamp(0.9rem, 1.5vw, 1.25rem);
+}
+
+.text-responsive {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.pill {
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.35rem 0.75rem;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.accent-underline {
+  display: inline-block;
+  position: relative;
+}
+
+.accent-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35rem;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0066ff, #00b894);
+  opacity: 0.4;
 }

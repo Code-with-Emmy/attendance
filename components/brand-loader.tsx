@@ -7,25 +7,35 @@ type Props = {
   compact?: boolean;
 };
 
-export function BrandLoader({ label = "Loading workspace...", compact = false }: Props) {
+export function BrandLoader({
+  label = "Connecting...",
+  compact = false,
+}: Props) {
   if (compact) {
     return (
-      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-1.5 text-xs font-semibold text-[var(--ink-soft)]">
-        <span className="loader-dot" />
+      <div className="inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
         {label}
       </div>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-10 lg:px-6">
-      <section className="glass-card reveal w-full max-w-xl rounded-[2rem] p-8 text-center">
-        <div className="mx-auto mb-4 h-14 w-14 rounded-full border border-cyan-200 bg-cyan-50 p-1">
-          <div className="loader-orbit h-full w-full rounded-full border-2 border-cyan-500 border-t-transparent" />
+    <main className="min-h-screen bg-slate-50 font-(family-name:--font-lato) flex items-center justify-center p-6">
+      <section className="w-full max-w-sm bg-white border-2 border-slate-200 rounded-xl p-12 text-center shadow-sm">
+        <div className="mx-auto mb-10 flex h-16 w-16 items-center justify-center rounded-xl bg-slate-900 shadow-xl">
+          <div className="h-8 w-8 border-4 border-slate-700 border-t-cyan-500 animate-spin rounded-full" />
         </div>
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-700">{BRAND_COMPANY}</p>
-        <h1 className="mt-2 text-2xl font-bold text-[var(--ink-strong)]">{BRAND_PRODUCT}</h1>
-        <p className="mt-3 text-sm text-[var(--ink-soft)]">{label}</p>
+
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 mb-2">
+          {BRAND_COMPANY}
+        </p>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tighter">
+          {BRAND_PRODUCT}
+        </h1>
+        <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+          {label}
+        </p>
       </section>
     </main>
   );

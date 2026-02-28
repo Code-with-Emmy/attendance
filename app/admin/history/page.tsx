@@ -46,10 +46,22 @@ function toDateInputValue(date: Date) {
 }
 
 function atLocalStartOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
 }
 
-function resolveRange(preset: RangePreset, customStartDate: string, customEndDate: string): ResolvedRange {
+function resolveRange(
+  preset: RangePreset,
+  customStartDate: string,
+  customEndDate: string,
+): ResolvedRange {
   const now = new Date();
 
   if (preset === "TODAY") {
@@ -97,7 +109,11 @@ function resolveRange(preset: RangePreset, customStartDate: string, customEndDat
   const endExclusive = new Date(`${customEndDate}T00:00:00`);
   endExclusive.setDate(endExclusive.getDate() + 1);
 
-  if (!Number.isFinite(start.getTime()) || !Number.isFinite(endExclusive.getTime()) || start >= endExclusive) {
+  if (
+    !Number.isFinite(start.getTime()) ||
+    !Number.isFinite(endExclusive.getTime()) ||
+    start >= endExclusive
+  ) {
     return {
       label: "Custom range",
       valid: false,
@@ -130,7 +146,10 @@ function buildHoursSummary(rows: AdminHistoryRow[]) {
   const now = Date.now();
 
   for (const [employeeId, entries] of grouped.entries()) {
-    const sorted = [...entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const sorted = [...entries].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
 
     let openClockIn: number | null = null;
     let totalMs = 0;
@@ -157,7 +176,10 @@ function buildHoursSummary(rows: AdminHistoryRow[]) {
     }
 
     const totalHours = totalMs / 3_600_000;
-    const name = sorted[sorted.length - 1]?.employee.name || sorted[sorted.length - 1]?.employee.email || "Unknown Employee";
+    const name =
+      sorted[sorted.length - 1]?.employee.name ||
+      sorted[sorted.length - 1]?.employee.email ||
+      "Unknown Employee";
 
     hoursByEmployee.set(employeeId, totalHours);
     activeByEmployee.set(employeeId, activeSession);
@@ -180,7 +202,9 @@ function buildHoursSummary(rows: AdminHistoryRow[]) {
 }
 
 export default function AdminHistoryPage() {
-  const { user, session, loading, error, signOut } = useAuthUser({ requireAdmin: true });
+  const { user, session, loading, signOut } = useAuthUser({
+    requireAdmin: true,
+  });
   const [rows, setRows] = useState<AdminHistoryRow[]>([]);
   const [rowsLoading, setRowsLoading] = useState(true);
   const [rowsError, setRowsError] = useState("");
@@ -193,7 +217,9 @@ export default function AdminHistoryPage() {
     date.setDate(date.getDate() - 6);
     return toDateInputValue(date);
   });
-  const [customEndDate, setCustomEndDate] = useState(() => toDateInputValue(new Date()));
+  const [customEndDate, setCustomEndDate] = useState(() =>
+    toDateInputValue(new Date()),
+  );
 
   const resolvedRange = useMemo(
     () => resolveRange(rangePreset, customStartDate, customEndDate),
@@ -202,10 +228,13 @@ export default function AdminHistoryPage() {
 
   const rangeValidationError =
     rangePreset === "CUSTOM" && !resolvedRange.valid
-      ? "Select a valid custom start and end date range."
+      ? "Please pick a valid start and end date."
       : "";
 
-  const { summaries, hoursByEmployee, activeByEmployee } = useMemo(() => buildHoursSummary(rows), [rows]);
+  const { summaries, hoursByEmployee } = useMemo(
+    () => buildHoursSummary(rows),
+    [rows],
+  );
 
   useEffect(() => {
     if (!session?.access_token) {
@@ -230,19 +259,28 @@ export default function AdminHistoryPage() {
           params.set("end", resolvedRange.end);
         }
 
-        const data = await apiFetch<AdminHistoryRow[]>(`/api/admin/history?${params.toString()}`, {
-          method: "GET",
-          accessToken: session.access_token,
-        });
+        const data = await apiFetch<AdminHistoryRow[]>(
+          `/api/admin/history?${params.toString()}`,
+          {
+            method: "GET",
+            accessToken: session.access_token,
+          },
+        );
         setRows(data);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to load admin history.";
+        const msg =
+          err instanceof Error ? err.message : "Failed to load history.";
         setRowsError(msg);
       } finally {
         setRowsLoading(false);
       }
     })();
-  }, [resolvedRange.end, resolvedRange.start, resolvedRange.valid, session?.access_token]);
+  }, [
+    resolvedRange.end,
+    resolvedRange.start,
+    resolvedRange.valid,
+    session?.access_token,
+  ]);
 
   async function exportCsv() {
     if (!session?.access_token || !resolvedRange.valid) {
@@ -263,13 +301,16 @@ export default function AdminHistoryPage() {
         params.set("end", resolvedRange.end);
       }
 
-      const response = await fetch(`/api/admin/history/export?${params.toString()}`, {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+      const response = await fetch(
+        `/api/admin/history/export?${params.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const contentType = response.headers.get("content-type") || "";
@@ -277,7 +318,7 @@ export default function AdminHistoryPage() {
           const data = (await response.json()) as { error?: string };
           throw new Error(data.error || "Export failed.");
         }
-        throw new Error(`Export failed with status ${response.status}.`);
+        throw new Error(`Export failed.`);
       }
 
       const blob = await response.blob();
@@ -291,9 +332,10 @@ export default function AdminHistoryPage() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
-      setExportMessage(`CSV export downloaded for ${resolvedRange.label}.`);
+      setExportMessage(`Download complete!`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to export attendance records.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to download report.";
       setRowsError(msg);
     } finally {
       setExportLoading(false);
@@ -301,147 +343,239 @@ export default function AdminHistoryPage() {
   }
 
   if (loading || !user) {
-    return <BrandLoader label="Loading attendance analytics..." />;
+    return <BrandLoader label="Opening history records..." />;
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
-      <AppHeader role={user.role} email={user.email} active="ADMIN_HISTORY" onSignOut={signOut} />
+    <main className="min-h-screen bg-slate-50 font-(family-name:--font-lato) antialiased text-slate-900 px-6 py-10 lg:px-16 overflow-y-auto">
+      <div className="mx-auto max-w-7xl">
+        <AppHeader
+          role={user.role}
+          email={user.email}
+          active="ADMIN_HISTORY"
+          onSignOut={signOut}
+        />
 
-      <section className="glass-card reveal rounded-3xl p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-cyan-700">
-              {BRAND_COMPANY}
-            </p>
-            <h1 className="mt-2 text-2xl font-bold text-[var(--ink-strong)]">Attendance History + Hours</h1>
-            <p className="mt-2 text-sm text-[var(--ink-soft)]">
-              Admin-only audit view with worked-hours calculations and payroll-ready date-range export.
+        {/* Plain Header */}
+        <header className="mb-12 border-l-4 border-emerald-500 pl-6 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-slate-900">
+              Shift Records.
+            </h1>
+            <p className="text-md font-bold text-slate-500 max-w-xl">
+              Audit employee activity and total working hours across any
+              timeframe.
             </p>
           </div>
+
           <button
             type="button"
             onClick={() => void exportCsv()}
             disabled={exportLoading || !resolvedRange.valid}
-            className="btn-solid btn-main"
+            className="h-12 px-8 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-30"
           >
-            {exportLoading ? "Exporting..." : "Export CSV"}
+            {exportLoading ? "Generating..." : "Download Spreadsheet"}
           </button>
-        </div>
+        </header>
 
-        <div className="mt-4 rounded-2xl border border-[var(--line)] bg-white p-4">
-          <div className="flex flex-wrap gap-2">
-            {(["TODAY", "WEEK", "MONTH", "CUSTOM"] as const).map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setRangePreset(preset)}
-                className={`btn-solid ${rangePreset === preset ? "btn-main" : "btn-neutral"}`}
-              >
-                {preset === "TODAY" ? "Today" : preset === "WEEK" ? "This Week" : preset === "MONTH" ? "This Month" : "Custom"}
-              </button>
-            ))}
-          </div>
-
-          {rangePreset === "CUSTOM" && (
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <label className="text-sm">
-                <span className="mb-1 block font-semibold text-[var(--ink-strong)]">Start date</span>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(event) => setCustomStartDate(event.target.value)}
-                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2"
-                />
-              </label>
-              <label className="text-sm">
-                <span className="mb-1 block font-semibold text-[var(--ink-strong)]">End date</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(event) => setCustomEndDate(event.target.value)}
-                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2"
-                />
-              </label>
-            </div>
-          )}
-
-          <p className="mt-3 text-sm text-[var(--ink-soft)]">
-            Active range: <span className="font-semibold text-[var(--ink-strong)]">{resolvedRange.label}</span>
-          </p>
-          {rangeValidationError && <p className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-700">{rangeValidationError}</p>}
-        </div>
-
-        {(error || rowsError) && <p className="mt-4 rounded-2xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error || rowsError}</p>}
-        {exportMessage && <p className="mt-4 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{exportMessage}</p>}
-
-        {rowsLoading ? (
-          <div className="mt-4">
-            <BrandLoader label="Loading history records..." compact />
-          </div>
-        ) : rows.length === 0 ? (
-          <p className="mt-4 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-[var(--ink-soft)]">No attendance records found for selected range.</p>
-        ) : (
-          <>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {summaries.slice(0, 6).map((summary) => (
-                <article key={summary.employeeId} className="display-card rounded-2xl p-4">
-                  <p className="text-sm font-semibold text-[var(--ink-strong)]">{summary.employeeName}</p>
-                  <p className="mt-1 text-2xl font-extrabold text-[var(--ink-strong)]">{summary.totalHours.toFixed(2)}h</p>
-                  <div className="mt-2 flex items-center justify-between text-xs text-[var(--ink-soft)]">
-                    <span>
-                      {summary.sessions} completed session{summary.sessions === 1 ? "" : "s"}
-                    </span>
-                    <span className={`status-chip ${summary.activeSession ? "status-warn" : "status-ok"}`}>
-                      {summary.activeSession ? "Clocked In" : "Clocked Out"}
-                    </span>
-                  </div>
-                </article>
+        <section className="bg-white border-2 border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          {/* Plain Filters */}
+          <div className="p-8 border-b border-slate-200 bg-slate-50/50">
+            <div className="flex flex-wrap items-center gap-2">
+              {(["TODAY", "WEEK", "MONTH", "CUSTOM"] as const).map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setRangePreset(preset)}
+                  className={`h-9 px-5 rounded-md font-black uppercase tracking-widest text-[9px] transition-all ${
+                    rangePreset === preset
+                      ? "bg-slate-900 text-white shadow-md scale-105"
+                      : "bg-white border border-slate-300 text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  {preset === "TODAY"
+                    ? "Today"
+                    : preset === "WEEK"
+                      ? "Current Week"
+                      : preset === "MONTH"
+                        ? "Current Month"
+                        : "Date Picker"}
+                </button>
               ))}
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-[var(--line)] bg-white">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-slate-100 text-[var(--ink-soft)]">
-                  <tr>
-                    <th className="px-3 py-2">Employee</th>
-                    <th className="px-3 py-2">Type</th>
-                    <th className="px-3 py-2">Timestamp</th>
-                    <th className="px-3 py-2">Distance</th>
-                    <th className="px-3 py-2">Hours Worked</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.id} className="border-t border-slate-200 align-top">
-                      <td className="px-3 py-2 text-[var(--ink-strong)]">
-                        <div className="font-semibold">{row.employee.name || row.employee.email || "Unknown Employee"}</div>
-                        <div className="text-xs text-[var(--ink-soft)]">{row.employee.email || "No email"}</div>
-                        {(row.employee.department || row.employee.title) && (
-                          <div className="text-xs text-[var(--ink-soft)]">
-                            {row.employee.department || "-"} / {row.employee.title || "-"}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className={`status-chip ${row.type === "CLOCK_IN" ? "status-ok" : "status-warn"}`}>
-                          {row.type === "CLOCK_IN" ? "Clock In" : "Clock Out"}
+            {rangePreset === "CUSTOM" && (
+              <div className="mt-8 grid gap-6 md:grid-cols-2 max-w-xl">
+                <label className="block">
+                  <span className="mb-1.5 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    Range Start
+                  </span>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(event) => setCustomStartDate(event.target.value)}
+                    className="w-full h-11 bg-white border border-slate-300 px-4 rounded-lg font-bold text-lg text-slate-900 outline-none focus:border-blue-600"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    Range End
+                  </span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(event) => setCustomEndDate(event.target.value)}
+                    className="w-full h-11 bg-white border border-slate-300 px-4 rounded-lg font-bold text-lg text-slate-900 outline-none focus:border-blue-600"
+                  />
+                </label>
+              </div>
+            )}
+
+            <p className="mt-6 text-[9px] font-black uppercase tracking-widest text-slate-400">
+              ACTIVE PERIOD:{" "}
+              <span className="text-slate-900">{resolvedRange.label}</span>
+            </p>
+          </div>
+
+          <div className="p-8">
+            {(rowsError || exportMessage) && (
+              <div
+                className={`mb-8 flex items-center gap-4 px-6 py-4 rounded-xl border-2 shadow-lg ${
+                  rowsError
+                    ? "bg-rose-600 text-white border-rose-400"
+                    : "bg-emerald-600 text-white border-emerald-400"
+                }`}
+              >
+                <span className="text-2xl font-black">
+                  {rowsError ? "!" : "✓"}
+                </span>
+                <p className="text-[10px] font-black uppercase tracking-widest">
+                  {rowsError || exportMessage}
+                </p>
+              </div>
+            )}
+
+            {rowsLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="h-10 w-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+              </div>
+            ) : rows.length === 0 ? (
+              <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-xl">
+                <p className="text-lg font-bold text-slate-300 uppercase tracking-widest">
+                  No shift records found.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Plain Summary Cards */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-16">
+                  {summaries.slice(0, 8).map((summary) => (
+                    <article
+                      key={summary.employeeId}
+                      className="flex flex-col bg-slate-50 border border-slate-100 rounded-xl p-6 hover:bg-white hover:border-blue-200 transition-all group"
+                    >
+                      <p className="text-[9px] font-black uppercase tracking-widest text-blue-600 mb-2">
+                        Total Time
+                      </p>
+                      <h4 className="text-xl font-black text-slate-900 tracking-tight mb-4">
+                        {summary.employeeName}
+                      </h4>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                          {summary.totalHours.toFixed(1)}
                         </span>
-                      </td>
-                      <td className="px-3 py-2 text-[var(--ink-soft)]">{new Date(row.timestamp).toLocaleString()}</td>
-                      <td className="px-3 py-2 font-mono text-[var(--ink-soft)]">{row.distance.toFixed(4)}</td>
-                      <td className="px-3 py-2 text-[var(--ink-soft)]">
-                        <p className="font-semibold text-[var(--ink-strong)]">{(hoursByEmployee.get(row.employee.id) || 0).toFixed(2)}h</p>
-                        <p className="text-xs">{activeByEmployee.get(row.employee.id) ? "Active shift" : "Closed shift"}</p>
-                      </td>
-                    </tr>
+                        <span className="text-xs font-black text-slate-400">
+                          HRS
+                        </span>
+                      </div>
+                      <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          {summary.sessions} shifts
+                        </span>
+                        <span
+                          className={`h-2 w-2 rounded-full ${summary.activeSession ? "bg-amber-400 animate-pulse" : "bg-emerald-500"}`}
+                        />
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </section>
+                </div>
+
+                {/* Plain Table */}
+                <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-b border-slate-100">
+                        <th className="py-4 px-6 text-xs text-blue-600">
+                          Person
+                        </th>
+                        <th className="py-4 px-6 text-xs text-blue-600">
+                          Action
+                        </th>
+                        <th className="py-4 px-6 text-xs text-blue-600">
+                          Date & Time
+                        </th>
+                        <th className="py-4 px-6 text-xs text-blue-600 text-right">
+                          Running Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {rows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="group hover:bg-blue-50/20 transition-colors"
+                        >
+                          <td className="py-5 px-6">
+                            <p className="text-lg font-black text-slate-900 tracking-tight">
+                              {row.employee.name || "Unknown"}
+                            </p>
+                            <p className="text-xs font-bold text-slate-400">
+                              {row.employee.email}
+                            </p>
+                          </td>
+                          <td className="py-5 px-6">
+                            <span
+                              className={`px-4 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                                row.type === "CLOCK_IN"
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-blue-100 text-blue-600"
+                              }`}
+                            >
+                              {row.type === "CLOCK_IN" ? "Start" : "End"}
+                            </span>
+                          </td>
+                          <td className="py-5 px-6">
+                            <p className="text-sm font-black text-slate-900">
+                              {new Date(row.timestamp).toLocaleDateString([], {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </p>
+                            <p className="text-xs font-bold text-slate-400">
+                              {new Date(row.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </td>
+                          <td className="py-5 px-6 text-right">
+                            <p className="text-xl font-black text-slate-900 tracking-tighter">
+                              {(
+                                hoursByEmployee.get(row.employee.id) || 0
+                              ).toFixed(1)}
+                              h
+                            </p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

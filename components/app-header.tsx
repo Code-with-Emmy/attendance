@@ -12,41 +12,56 @@ type Props = {
 
 function linkClass(isActive: boolean) {
   return [
-    "rounded-full px-4 py-2 text-sm font-semibold transition",
+    "rounded-md px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all",
     isActive
-      ? "border border-transparent bg-[linear-gradient(135deg,#0066ff,#0f5fd8)] text-white shadow-[0_8px_16px_rgba(0,102,255,0.25)]"
-      : "border border-[var(--line)] bg-white text-[var(--ink-strong)] hover:bg-slate-50",
+      ? "bg-slate-900 text-white shadow-sm"
+      : "bg-white border border-slate-300 text-slate-500 hover:bg-slate-100",
   ].join(" ");
 }
 
 export function AppHeader({ role, email, active, onSignOut }: Props) {
   return (
-    <header className="glass-card reveal mb-6 rounded-3xl p-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-700">{BRAND_COMPANY}</p>
-          <p className="text-sm font-semibold text-[var(--ink-strong)]">{BRAND_PRODUCT}</p>
-          <p className="text-sm text-[var(--ink-soft)]">Signed in as {email}</p>
+    <header className="mb-12 border-2 border-slate-200 bg-white p-6 rounded-lg">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-900">
+              {BRAND_COMPANY}
+            </span>
+            <div className="h-4 w-px bg-slate-200" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+              {BRAND_PRODUCT}
+            </span>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Session: {email}
+          </p>
         </div>
 
-        <nav className="flex flex-wrap gap-2">
-          <Link href="/attendance" className={linkClass(active === "ATTENDANCE")}>
+        <nav className="flex flex-wrap items-center gap-2">
+          <Link href="/" className={linkClass(active === "ATTENDANCE")}>
             Kiosk
           </Link>
           {role === "ADMIN" && (
-            <Link href="/admin/enroll" className={linkClass(active === "ADMIN_ENROLL")}>
+            <Link
+              href="/admin/enroll"
+              className={linkClass(active === "ADMIN_ENROLL")}
+            >
               Employees
             </Link>
           )}
           {role === "ADMIN" && (
-            <Link href="/admin/history" className={linkClass(active === "ADMIN_HISTORY")}>
-              Admin History
+            <Link
+              href="/admin/history"
+              className={linkClass(active === "ADMIN_HISTORY")}
+            >
+              Records
             </Link>
           )}
           <button
             type="button"
             onClick={onSignOut}
-            className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+            className="rounded-md border border-rose-200 bg-white px-6 py-2 text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
           >
             Sign Out
           </button>

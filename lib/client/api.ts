@@ -48,7 +48,9 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
       (typeof data === "object" && data && "error" in data && typeof data.error === "string"
         ? data.error
         : null) || `Request failed with status ${response.status}`;
-    throw new Error(message);
+    const error = new Error(message);
+    (error as any).status = response.status;
+    throw error;
   }
 
   return data as T;

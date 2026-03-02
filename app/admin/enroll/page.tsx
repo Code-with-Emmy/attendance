@@ -10,7 +10,6 @@ import { toUserFacingFaceError } from "@/lib/client/face-errors";
 import { captureSingleFaceEmbedding, loadFaceModels } from "@/lib/face-client";
 import {
   challengeLabel,
-  pickRandomChallenge,
   runLivenessChallenge,
   type LivenessChallenge,
 } from "@/lib/liveness";
@@ -240,7 +239,6 @@ export default function AdminEnrollPage() {
       );
 
       setMessage(`Face registered.`);
-      setChallenge(pickRandomChallenge());
     } catch (err) {
       setActionError(toUserFacingFaceError(err, "Could not capture scan."));
     } finally {
@@ -510,7 +508,39 @@ export default function AdminEnrollPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  <div className="space-y-2.5">
+                    <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Active Challenge
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          "BLINK",
+                          "TURN_HEAD",
+                          "OPEN_MOUTH",
+                          "NOD_HEAD",
+                        ] as const
+                      ).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setChallenge(c)}
+                          className={`h-10 rounded-lg border-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                            challenge === c
+                              ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200"
+                              : "bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600"
+                          }`}
+                        >
+                          {c.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-[10px] font-bold text-slate-500 italic">
+                      Action: {challengeLabel(challenge)}
+                    </p>
+                  </div>
+
                   <button
                     onClick={() => void enrollSelectedEmployeeFace()}
                     disabled={

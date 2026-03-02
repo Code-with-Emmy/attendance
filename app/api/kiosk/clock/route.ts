@@ -82,15 +82,43 @@ export async function POST(req: Request) {
     const latest = await prisma.attendance.findFirst({
       where: { employeeId: bestMatch.id },
       orderBy: { timestamp: "desc" },
-      select: { type: true },
+      select: { type: true, timestamp: true },
     });
 
     if (type === AttendanceType.CLOCK_IN && latest?.type === AttendanceType.CLOCK_IN) {
-      throw new ApiError(409, `${bestMatch.name} is already clocked in.`);
+      return NextResponse.json({
+        success: true,
+        alreadyDone: true,
+        employee: {
+          id: bestMatch.id,
+          name: bestMatch.name,
+          email: bestMatch.email,
+        },
+        entry: {
+          ...latest,
+          timestamp: latest.timestamp.toISOString(),
+          isWarning: true,
+          message: `${bestMatch.name} is already clocked in.`,
+        },
+      });
     }
 
     if (type === AttendanceType.CLOCK_OUT && latest?.type !== AttendanceType.CLOCK_IN) {
-      throw new ApiError(409, `${bestMatch.name} must clock in before clocking out.`);
+      return NextResponse.json({
+        success: true,
+        alreadyDone: true,
+        employee: {
+          id: bestMatch.id,
+          name: bestMatch.name,
+          email: bestMatch.email,
+        },
+        entry: {
+          type: "CLOCK_OUT",
+          timestamp: new Date().toISOString(),
+          isWarning: true,
+          message: `${bestMatch.name} must clock in before clocking out.`,
+        },
+      });
     }
 
     const entry = await prisma.attendance.create({

@@ -53,7 +53,7 @@ export function AppHeader({
         </div>
 
         <nav className="flex flex-wrap items-center gap-2">
-          <Link href="/" className={linkClass(active === "ATTENDANCE")}>
+          <Link href="/kiosk" className={linkClass(active === "ATTENDANCE")}>
             Kiosk
           </Link>
           {role === "ADMIN" && (
@@ -94,6 +94,14 @@ export function AppHeader({
               className={linkClass(active === "ADMIN_SHIFTS")}
             >
               Shifts
+            </Link>
+          )}
+          {role === "ADMIN" && (
+            <Link
+              href="/admin/payroll"
+              className={linkClass(active === "ADMIN_PAYROLL")}
+            >
+              Payroll
             </Link>
           )}
           <button

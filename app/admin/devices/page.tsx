@@ -107,7 +107,7 @@ export default function AdminDevicesPage() {
           role={user.role}
           email={user.email}
           organizationName={user.organizationName}
-          active="ADMIN_HISTORY" // Using HISTORY as placeholder or I should add ADMIN_DEVICES
+          active="ADMIN_DEVICES"
           onSignOut={signOut}
         />
 

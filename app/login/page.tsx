@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
           </button>
 
           <Link
-            href="/"
+            href="/kiosk"
             className="group flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all mt-10 pt-8 border-t border-slate-100"
           >
             <svg

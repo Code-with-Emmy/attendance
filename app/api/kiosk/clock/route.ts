@@ -1,12 +1,9 @@
-import { AttendanceType, Prisma } from "@prisma/client";
+import { AttendanceType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { RATE_LIMIT_CONFIG } from "@/lib/config";
 import { ApiError, toErrorResponse } from "@/lib/server/errors";
-import {
-  decideKioskClockForMatch,
-  matchKioskEmployeeFace,
-} from "@/lib/server/kiosk-attendance";
+import { matchKioskEmployeeFace } from "@/lib/server/kiosk-attendance";
 import {
   getRequestId,
   logError,
@@ -51,9 +48,23 @@ export async function POST(req: Request) {
 
     const parsed = verifyFaceSchema.parse({ embedding: body?.embedding });
     const embeddingStr = `[${parsed.embedding.join(",")}]`;
+    const matchThreshold = 0.45;
 
-    // 1. Scalable pgvector matching (Phase 5)
-    // We search across all stored embeddings for this organization
+    let matchDecision:
+      | {
+          employee: {
+            id: string;
+            name: string;
+            email: string | null;
+            organizationId: string;
+          };
+          matchDistance: number;
+          matchScore: number;
+          matchThreshold: number;
+        }
+      | null = null;
+
+    // 1. Prefer pgvector matching when vector rows exist for this org.
     const matches = await prisma.$queryRawUnsafe<any[]>(
       `SELECT e."id", e."name", e."email", e."organizationId",
               (v."embedding" <-> $1::vector) as "matchDistance"
@@ -63,28 +74,60 @@ export async function POST(req: Request) {
        ORDER BY "matchDistance" ASC
        LIMIT 1`,
       embeddingStr,
-      device.organizationId
+      device.organizationId,
     );
 
-    if (matches.length === 0) {
-      throw new ApiError(401, "Face not recognized. Please enroll first.");
+    if (matches.length > 0) {
+      const bestMatch = matches[0];
+
+      if (bestMatch.matchDistance <= matchThreshold) {
+        matchDecision = {
+          employee: {
+            id: bestMatch.id,
+            name: bestMatch.name,
+            email: bestMatch.email,
+            organizationId: bestMatch.organizationId,
+          },
+          matchDistance: bestMatch.matchDistance,
+          matchScore: 1 - bestMatch.matchDistance,
+          matchThreshold,
+        };
+      }
     }
 
-    const bestMatch = matches[0];
-    
-    // threshold Check (Legacy similarity thresholding)
-    const matchThreshold = 0.45; // lower is better for L2
-    if (bestMatch.matchDistance > matchThreshold) {
-       throw new ApiError(401, "Face match confidence too low.");
-    }
+    // 2. Fallback for legacy enrollments stored only on Employee.faceEmbedding.
+    if (!matchDecision) {
+      const legacyCandidates = await prisma.employee.findMany({
+        where: {
+          organizationId: device.organizationId,
+          faceEnrolledAt: { not: null },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          organizationId: true,
+          faceEmbedding: true,
+        },
+      });
 
-    const matchDecision = {
-      kind: "SUCCESS" as const,
-      employee: bestMatch,
-      matchDistance: bestMatch.matchDistance,
-      matchScore: 1 - bestMatch.matchDistance,
-      matchThreshold
-    };
+      const legacyMatch = matchKioskEmployeeFace({
+        embedding: parsed.embedding,
+        candidates: legacyCandidates,
+        threshold: matchThreshold,
+      });
+
+      if (legacyMatch.kind === "REJECT") {
+        throw new ApiError(legacyMatch.status, legacyMatch.message);
+      }
+
+      matchDecision = {
+        employee: legacyMatch.employee,
+        matchDistance: legacyMatch.matchDistance,
+        matchScore: legacyMatch.matchScore,
+        matchThreshold: legacyMatch.matchThreshold,
+      };
+    }
 
     logInfo("Kiosk match verified", {
       requestId,

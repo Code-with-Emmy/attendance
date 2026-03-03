@@ -28,26 +28,37 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const embedding = parsed.embedding as number[];
     const embeddingStr = `[${embedding.join(",")}]`;
 
-    // 1. Update primary model (for legacy compatibility/quick checks)
-    const updated = await prisma.employee.update({
-      where: { id },
-      data: {
-        faceEmbedding: parsed.embedding as any,
-        faceEnrolledAt: new Date(),
-      },
-      select: {
-        faceEnrolledAt: true,
-      },
-    });
+    const enrolledAt = new Date();
 
-    // 2. Insert into vector table (scalable 1:N)
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "EmployeeFaceEmbedding" ("id", "employeeId", "organizationId", "embedding", "createdAt") 
-       VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3::vector, now())`,
-      id, 
-      auth.organizationId, 
-      embeddingStr
-    );
+    const updated = await prisma.$transaction(async (tx) => {
+      const employee = await tx.employee.update({
+        where: { id },
+        data: {
+          faceEmbedding: parsed.embedding as any,
+          faceEnrolledAt: enrolledAt,
+        },
+        select: {
+          faceEnrolledAt: true,
+        },
+      });
+
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "EmployeeFaceEmbedding"
+         WHERE "employeeId" = $1::uuid AND "organizationId" = $2::uuid`,
+        id,
+        auth.organizationId,
+      );
+
+      await tx.$executeRawUnsafe(
+        `INSERT INTO "EmployeeFaceEmbedding" ("id", "employeeId", "organizationId", "embedding", "createdAt") 
+         VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3::vector, now())`,
+        id,
+        auth.organizationId,
+        embeddingStr,
+      );
+
+      return employee;
+    });
 
     return NextResponse.json({
       success: true,
@@ -79,12 +90,21 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       throw new ApiError(404, "Target employee not found.");
     }
 
-    await prisma.employee.update({
-      where: { id },
-      data: {
-        faceEmbedding: Prisma.DbNull,
-        faceEnrolledAt: null,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.employee.update({
+        where: { id },
+        data: {
+          faceEmbedding: Prisma.DbNull,
+          faceEnrolledAt: null,
+        },
+      });
+
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "EmployeeFaceEmbedding"
+         WHERE "employeeId" = $1::uuid AND "organizationId" = $2::uuid`,
+        id,
+        auth.organizationId,
+      );
     });
 
     return NextResponse.json({ success: true });

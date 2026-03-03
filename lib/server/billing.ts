@@ -7,23 +7,40 @@ export async function getOrganizationSubscription(organizationId: string) {
     include: { plan: true },
   });
 
-  if (!subscription) {
-    // Fallback to a default 'free' plan if not found, or throw
-    const freePlan = await prisma.subscriptionPlan.findUnique({
-      where: { code: "free" },
-    });
-    
-    if (!freePlan) {
-      throw new ApiError(500, "Billing system not fully initialized.");
-    }
-    
-    return {
-      status: "active",
-      plan: freePlan,
-    };
+  if (subscription) {
+    return subscription;
   }
 
-  return subscription;
+  const freePlan = await prisma.subscriptionPlan.upsert({
+    where: { code: "free" },
+    update: {},
+    create: {
+      name: "Free",
+      code: "free",
+      maxEmployees: 10,
+      maxDevices: 1,
+      priceMonthly: 0,
+      features: {
+        attendance: true,
+        kiosk: true,
+        adminDashboard: true,
+      },
+    },
+  });
+
+  return prisma.organizationSubscription.upsert({
+    where: { organizationId },
+    update: {
+      status: "active",
+      planId: freePlan.id,
+    },
+    create: {
+      organizationId,
+      planId: freePlan.id,
+      status: "active",
+    },
+    include: { plan: true },
+  });
 }
 
 export async function enforceEmployeeLimit(organizationId: string) {

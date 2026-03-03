@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
 import { motion } from "framer-motion";
 
@@ -44,6 +46,19 @@ function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const kioskToken =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("kiosk_token")
+        : null;
+
+    if (kioskToken) {
+      router.replace("/kiosk");
+    }
+  }, [router]);
+
   return (
     <main className="min-h-screen bg-slate-950 font-(family-name:--font-lato) text-slate-200 selection:bg-cyan-500/30">
       {/* 1) Navbar */}
@@ -84,6 +99,12 @@ export default function LandingPage() {
             >
               Sign In
             </Link>
+            <Link
+              href="/kiosk"
+              className="hidden md:inline-flex h-10 items-center justify-center rounded-lg px-6 text-[10px] font-black uppercase tracking-widest text-cyan-300 hover:bg-cyan-500/10 transition-colors"
+            >
+              Open Kiosk
+            </Link>
             <button className="h-10 px-6 rounded-lg bg-white text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-50 transition-colors">
               Book a Demo
             </button>
@@ -118,6 +139,12 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link
+              href="/kiosk"
+              className="w-full sm:w-auto h-14 px-8 rounded-xl bg-cyan-600 text-white text-xs font-black uppercase tracking-widest hover:bg-cyan-500 transition-all shadow-[0_0_30px_rgba(8,145,178,0.3)] hover:shadow-[0_0_40px_rgba(8,145,178,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              <CheckIcon className="w-4 h-4" /> Open Kiosk
+            </Link>
             <button className="w-full sm:w-auto h-14 px-8 rounded-xl bg-cyan-600 text-white text-xs font-black uppercase tracking-widest hover:bg-cyan-500 transition-all shadow-[0_0_30px_rgba(8,145,178,0.3)] hover:shadow-[0_0_40px_rgba(8,145,178,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
               <CheckIcon className="w-4 h-4" /> Book a Demo
             </button>

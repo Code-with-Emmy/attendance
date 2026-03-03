@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { BrandLogo } from "@/components/brand-logo";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { BRAND_COMPANY } from "@/lib/branding";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
     if (!supabase) return;
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        router.replace("/admin/enroll");
+        router.replace("/admin");
       }
     });
   }, [router, supabase]);
@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
         password,
       });
       if (signInError) throw signInError;
-      router.replace("/admin/enroll");
+      router.replace("/admin");
     } catch (err) {
       const msg =
         err instanceof Error
@@ -65,16 +65,11 @@ export default function AdminLoginPage() {
     <main className="min-h-screen bg-slate-50 font-(family-name:--font-lato) antialiased text-slate-900 flex items-center justify-center p-6">
       <section className="w-full max-w-md bg-white border-2 border-slate-200 rounded-xl p-10 md:p-12 shadow-sm relative overflow-hidden">
         <div className="flex flex-col items-center text-center mb-10">
-          {/* Plain Brand Mark */}
-          <div className="h-16 w-16 mb-8 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg">
-            <span className="font-black text-3xl text-white tracking-tighter">
-              A
-            </span>
-          </div>
+          <BrandLogo size="lg" className="mb-8" />
 
           <div className="space-y-1">
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-blue-600 mb-2">
-              {BRAND_COMPANY} Access
+              Secure Access
             </p>
             <h1 className="text-3xl font-black tracking-tighter text-slate-900">
               Admin Entry.

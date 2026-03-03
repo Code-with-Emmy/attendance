@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireAuth } from "@/lib/server/auth";
 import { toErrorResponse } from "@/lib/server/errors";
+import { enforceDeviceLimit } from "@/lib/server/billing";
+import { hashDeviceToken } from "@/lib/server/device-auth";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { RATE_LIMIT_CONFIG } from "@/lib/config";
 import crypto from "crypto";
@@ -15,6 +17,12 @@ export async function GET(req: Request) {
     const devices = await prisma.device.findMany({
       where: { organizationId: auth.organizationId },
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        lastActiveAt: true,
+        createdAt: true,
+      },
     });
 
     return NextResponse.json(devices);
@@ -22,8 +30,6 @@ export async function GET(req: Request) {
     return toErrorResponse(error, "Failed to load devices.");
   }
 }
-
-import { enforceDeviceLimit } from "@/lib/server/billing";
 
 export async function POST(req: Request) {
   try {
@@ -40,19 +46,27 @@ export async function POST(req: Request) {
 
     await enforceDeviceLimit(auth.organizationId);
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const activationToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = hashDeviceToken(activationToken);
 
     const device = await prisma.device.create({
       data: {
         name: name.trim(),
-        token,
+        token: tokenHash,
         organizationId: auth.organizationId,
+      },
+      select: {
+        id: true,
+        name: true,
+        lastActiveAt: true,
+        createdAt: true,
       },
     });
 
     return NextResponse.json({
       success: true,
       device,
+      activationToken,
     });
   } catch (error) {
     return toErrorResponse(error, "Failed to create device.");

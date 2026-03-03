@@ -1,6 +1,6 @@
 "use client";
 
-import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
+import { BrandLogo } from "@/components/brand-logo";
 
 type Props = {
   label?: string;
@@ -27,11 +27,9 @@ export function BrandLoader({
           <div className="h-8 w-8 border-4 border-slate-700 border-t-cyan-500 animate-spin rounded-full" />
         </div>
 
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 mb-2">
-          {BRAND_COMPANY}
-        </p>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tighter">
-          {BRAND_PRODUCT}
+        <BrandLogo size="lg" className="mx-auto" />
+        <h1 className="mt-6 text-3xl font-black text-slate-900 tracking-tighter">
+          Attendance System
         </h1>
         <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
           {label}

@@ -1,3 +1,3 @@
-export const BRAND_COMPANY = "Aierth Technolohgies";
-export const BRAND_PRODUCT = "ChronoFace Suite";
-export const BRAND_FULL_NAME = `${BRAND_COMPANY} ${BRAND_PRODUCT}`;
+export const BRAND_COMPANY = "Attendance";
+export const BRAND_PRODUCT = "System";
+export const BRAND_FULL_NAME = "Attendance System";

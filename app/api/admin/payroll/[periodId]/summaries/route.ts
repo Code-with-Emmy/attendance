@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireAuth } from "@/lib/server/auth";
+import { enforceFeatureAccess } from "@/lib/server/billing";
 import { toErrorResponse } from "@/lib/server/errors";
 import { generatePaySummaries } from "@/lib/server/payroll-service";
 
@@ -11,6 +12,11 @@ export async function GET(
   try {
     const auth = await requireAuth(req);
     requireAdmin(auth.dbUser);
+    await enforceFeatureAccess(
+      auth.organizationId,
+      "payroll",
+      "Payroll export",
+    );
 
     const periodId = (await params).periodId;
 
@@ -32,6 +38,11 @@ export async function POST(
   try {
     const auth = await requireAuth(req);
     requireAdmin(auth.dbUser);
+    await enforceFeatureAccess(
+      auth.organizationId,
+      "payroll",
+      "Payroll export",
+    );
 
     const periodId = (await params).periodId;
 
@@ -48,4 +59,3 @@ export async function POST(
     return toErrorResponse(error, "Failed to calculate summaries.");
   }
 }
-

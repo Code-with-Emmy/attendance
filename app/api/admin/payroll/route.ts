@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireAuth } from "@/lib/server/auth";
+import { enforceFeatureAccess } from "@/lib/server/billing";
 import { toErrorResponse } from "@/lib/server/errors";
 import { generatePaySummaries } from "@/lib/server/payroll-service";
 
@@ -8,6 +9,11 @@ export async function GET(req: Request) {
   try {
     const auth = await requireAuth(req);
     requireAdmin(auth.dbUser);
+    await enforceFeatureAccess(
+      auth.organizationId,
+      "payroll",
+      "Payroll export",
+    );
 
     const periods = await prisma.payPeriod.findMany({
       where: { organizationId: auth.organizationId },
@@ -24,6 +30,11 @@ export async function POST(req: Request) {
   try {
     const auth = await requireAuth(req);
     requireAdmin(auth.dbUser);
+    await enforceFeatureAccess(
+      auth.organizationId,
+      "payroll",
+      "Payroll export",
+    );
 
     const body = await req.json();
     const { startDate, endDate } = body;

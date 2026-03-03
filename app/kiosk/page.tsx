@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCamera } from "@/hooks/use-camera";
 import { apiFetch } from "@/lib/client/api";
 import { toUserFacingFaceError } from "@/lib/client/face-errors";
+import { BrandLogo } from "@/components/brand-logo";
 import { captureSingleFaceEmbedding, loadFaceModels } from "@/lib/face-client";
 import {
   challengeLabel,
@@ -12,7 +13,6 @@ import {
   runLivenessChallenge,
   type LivenessChallenge,
 } from "@/lib/liveness";
-import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
 import { BrandLoader } from "@/components/brand-loader";
 import { SyncDB } from "@/lib/client/sync-manager";
 import { useAttendanceSync } from "@/lib/client/hooks/use-attendance-sync";
@@ -249,9 +249,7 @@ export default function PlainKioskPage() {
       <main className="min-h-screen w-full bg-slate-50 font-(family-name:--font-lato) antialiased text-slate-900 flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white border-2 border-slate-200 rounded-3xl p-10 shadow-2xl space-y-8">
           <div className="text-center space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600">
-              {BRAND_COMPANY}
-            </p>
+            <BrandLogo size="md" className="mx-auto mb-4" />
             <h1 className="text-3xl font-black tracking-tighter leading-none">
               Terminal Setup.
             </h1>
@@ -317,14 +315,7 @@ export default function PlainKioskPage() {
           <KioskClock />
 
           <div className="flex items-center gap-6">
-            <div className="hidden flex-col items-end sm:flex">
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-600 mb-1">
-                {BRAND_COMPANY}
-              </p>
-              <p className="text-xl font-black text-(--ink-strong) tracking-tighter">
-                {BRAND_PRODUCT}
-              </p>
-            </div>
+            <BrandLogo size="md" />
             <div className="h-14 w-14 rounded-xl border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
               <div className="h-8 w-8 rounded-full border-3 border-slate-200 border-t-blue-500 animate-spin opacity-30" />
             </div>
@@ -652,7 +643,7 @@ export default function PlainKioskPage() {
             Manager Desk
           </Link>
           <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.5em]">
-            Powered by Aierth Kinetic // {new Date().getFullYear()}
+            Powered securely // {new Date().getFullYear()}
           </p>
         </footer>
       </div>

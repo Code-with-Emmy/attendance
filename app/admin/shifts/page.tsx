@@ -265,7 +265,7 @@ export default function ShiftsPage() {
                             From {new Date(a.startDate).toLocaleDateString()}
                           </p>
                           {a.endDate && (
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-rose-500">
+                            <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">
                               To {new Date(a.endDate).toLocaleDateString()}
                             </p>
                           )}

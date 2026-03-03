@@ -9,7 +9,6 @@ import { BrandLoader } from "@/components/brand-loader";
 type Device = {
   id: string;
   name: string;
-  token: string;
   lastActiveAt: string | null;
   createdAt: string;
 };
@@ -25,6 +24,7 @@ export default function AdminDevicesPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [activationToken, setActivationToken] = useState("");
 
   const loadDevices = useCallback(async () => {
     if (!session?.access_token) return;
@@ -56,9 +56,14 @@ export default function AdminDevicesPage() {
     setCreating(true);
     setError("");
     setMessage("");
+    setActivationToken("");
 
     try {
-      const response = await apiFetch<{ success: boolean; device: Device }>(
+      const response = await apiFetch<{
+        success: boolean;
+        device: Device;
+        activationToken: string;
+      }>(
         "/api/admin/devices",
         {
           method: "POST",
@@ -69,7 +74,8 @@ export default function AdminDevicesPage() {
 
       setDevices((prev) => [response.device, ...prev]);
       setNewDeviceName("");
-      setMessage("Device registered successfully.");
+      setActivationToken(response.activationToken);
+      setMessage("Device registered. Copy the activation token now.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create device.");
     } finally {
@@ -148,6 +154,30 @@ export default function AdminDevicesPage() {
                   {creating ? "Generating..." : "Generate Token"}
                 </button>
               </form>
+              {activationToken && (
+                <div className="mt-6 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                        One-time activation token
+                      </p>
+                      <p className="text-sm font-bold text-emerald-900">
+                        Save this now. For security, it will not be shown again.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void navigator.clipboard.writeText(activationToken)}
+                      className="h-11 px-5 rounded-lg bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-colors"
+                    >
+                      Copy Token
+                    </button>
+                  </div>
+                  <code className="mt-4 block break-all rounded-lg bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                    {activationToken}
+                  </code>
+                </div>
+              )}
             </section>
 
             {/* Device List */}
@@ -183,7 +213,7 @@ export default function AdminDevicesPage() {
                   <thead>
                     <tr className="bg-slate-50/50">
                       <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Name</th>
-                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Device Token</th>
+                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Access</th>
                       <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Last Active</th>
                       <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                     </tr>
@@ -202,9 +232,9 @@ export default function AdminDevicesPage() {
                           <span className="text-lg font-black text-slate-900 tracking-tight">{device.name}</span>
                         </td>
                         <td className="px-8 py-6">
-                          <code className="bg-slate-100 px-3 py-1.5 rounded text-xs font-mono font-bold text-slate-600 break-all select-all cursor-pointer hover:bg-slate-200 transition-colors">
-                            {device.token}
-                          </code>
+                          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                            Hidden after setup
+                          </span>
                         </td>
                         <td className="px-8 py-6">
                           <span className="text-sm font-bold text-slate-500 tracking-tight">

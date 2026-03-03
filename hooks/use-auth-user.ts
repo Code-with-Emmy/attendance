@@ -122,7 +122,7 @@ export function useAuthUser(options?: { requireAdmin?: boolean }) {
     }
 
     if (user.role !== "ADMIN") {
-      router.replace("/attendance");
+      router.replace("/kiosk");
     }
   }, [options?.requireAdmin, router, user]);
 

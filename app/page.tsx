@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
+import { BrandLogo } from "@/components/brand-logo";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 
 function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -47,6 +48,7 @@ function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LandingPage() {
   const router = useRouter();
+  const [hasCustomerSession, setHasCustomerSession] = useState(false);
 
   useEffect(() => {
     const kioskToken =
@@ -59,61 +61,119 @@ export default function LandingPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      return;
+    }
+
+    let mounted = true;
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        setHasCustomerSession(Boolean(data.session));
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasCustomerSession(Boolean(session));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-slate-950 font-(family-name:--font-lato) text-slate-200 selection:bg-cyan-500/30">
       {/* 1) Navbar */}
       <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-slate-950/60 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-black uppercase tracking-[0.3em] text-white">
-              {BRAND_COMPANY}
-            </span>
-            <span className="h-4 w-px bg-slate-700" />
-            <span className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
-              {BRAND_PRODUCT}
-            </span>
+        <div className="mx-auto max-w-7xl px-6 py-4 lg:px-8">
+          <div className="flex h-14 items-center justify-between md:h-[4.5rem]">
+            <BrandLogo size="sm" className="h-12 w-12 md:h-[4.5rem] md:w-[4.5rem]" />
+
+            <div className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              <a href="#product" className="hover:text-white transition-colors">
+                Product
+              </a>
+              <a href="#features" className="hover:text-white transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="hover:text-white transition-colors">
+                Pricing
+              </a>
+              <a href="#security" className="hover:text-white transition-colors">
+                Security
+              </a>
+              <a href="#contact" className="hover:text-white transition-colors">
+                Contact
+              </a>
+            </div>
+
+            <div className="hidden shrink-0 items-center justify-end gap-3 md:flex md:gap-4">
+              {hasCustomerSession ? (
+                <>
+                  <Link
+                    href="/login"
+                    className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg px-6 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
+                  >
+                    Admin Login
+                  </Link>
+                  <Link
+                    href="/kiosk"
+                    className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg px-6 text-[10px] font-black uppercase tracking-widest text-cyan-300 hover:bg-cyan-500/10 transition-colors"
+                  >
+                    Open Kiosk
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="#contact"
+                    className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-white px-6 text-[10px] font-black uppercase tracking-widest text-slate-950 transition-colors hover:bg-cyan-50"
+                  >
+                    Book a Demo
+                  </a>
+                  <Link
+                    href="/login"
+                    className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-cyan-600 px-6 text-[10px] font-black uppercase tracking-widest text-white transition-colors hover:bg-cyan-500 shadow-[0_0_20px_rgba(8,145,178,0.4)]"
+                  >
+                    Start Free Trial
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-            <a href="#product" className="hover:text-white transition-colors">
-              Product
-            </a>
-            <a href="#features" className="hover:text-white transition-colors">
-              Features
-            </a>
-            <a href="#pricing" className="hover:text-white transition-colors">
-              Pricing
-            </a>
-            <a href="#security" className="hover:text-white transition-colors">
-              Security
-            </a>
-            <a href="#contact" className="hover:text-white transition-colors">
-              Contact
-            </a>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="hidden md:inline-flex h-10 items-center justify-center rounded-lg px-6 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/kiosk"
-              className="hidden md:inline-flex h-10 items-center justify-center rounded-lg px-6 text-[10px] font-black uppercase tracking-widest text-cyan-300 hover:bg-cyan-500/10 transition-colors"
-            >
-              Open Kiosk
-            </Link>
-            <button className="h-10 px-6 rounded-lg bg-white text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-50 transition-colors">
-              Book a Demo
-            </button>
-            <button className="hidden md:inline-flex h-10 px-6 rounded-lg bg-cyan-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 transition-colors shadow-[0_0_20px_rgba(8,145,178,0.4)]">
-              Start Free Trial
-            </button>
+          <div className="pt-3 md:hidden">
+            {hasCustomerSession ? (
+              <Link
+                href="/kiosk"
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-cyan-600 px-5 text-[10px] font-black uppercase tracking-widest text-white transition-colors hover:bg-cyan-500"
+              >
+                Open Kiosk
+              </Link>
+            ) : (
+              <a
+                href="#contact"
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-cyan-600 px-5 text-[10px] font-black uppercase tracking-widest text-white transition-colors hover:bg-cyan-500"
+              >
+                Book a Demo
+              </a>
+            )}
           </div>
         </div>
       </nav>
+
+      <a
+        href="#contact"
+        className="fixed bottom-6 right-6 z-50 inline-flex h-14 items-center justify-center rounded-full bg-cyan-500 px-7 text-[10px] font-black uppercase tracking-widest text-slate-950 shadow-[0_18px_48px_rgba(8,145,178,0.35)] transition-colors hover:bg-cyan-400"
+      >
+        Book a Demo
+      </a>
 
       {/* 2) Hero */}
       <section className="relative pt-40 pb-20 lg:pt-56 lg:pb-32 overflow-hidden mx-auto max-w-7xl px-6 lg:px-8">
@@ -145,10 +205,16 @@ export default function LandingPage() {
             >
               <CheckIcon className="w-4 h-4" /> Open Kiosk
             </Link>
-            <button className="w-full sm:w-auto h-14 px-8 rounded-xl bg-cyan-600 text-white text-xs font-black uppercase tracking-widest hover:bg-cyan-500 transition-all shadow-[0_0_30px_rgba(8,145,178,0.3)] hover:shadow-[0_0_40px_rgba(8,145,178,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+            <a
+              href="#contact"
+              className="w-full sm:w-auto h-14 px-8 rounded-xl bg-cyan-600 text-white text-xs font-black uppercase tracking-widest hover:bg-cyan-500 transition-all shadow-[0_0_30px_rgba(8,145,178,0.3)] hover:shadow-[0_0_40px_rgba(8,145,178,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
               <CheckIcon className="w-4 h-4" /> Book a Demo
-            </button>
-            <button className="w-full sm:w-auto h-14 px-8 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+            </a>
+            <a
+              href="#product"
+              className="w-full sm:w-auto h-14 px-8 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -160,7 +226,7 @@ export default function LandingPage() {
                 <path d="M5 3l14 9-14 9V3z" />
               </svg>
               Watch 60-Second Walkthrough
-            </button>
+            </a>
           </div>
 
           <div className="pt-12 flex flex-col items-center gap-4">
@@ -196,7 +262,7 @@ export default function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-amber-500" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
                 <span className="ml-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  {BRAND_COMPANY} / Admin Dashboard
+                  Admin Dashboard
                 </span>
               </div>
               <div className="grid grid-cols-4 gap-4 px-2">
@@ -402,7 +468,8 @@ export default function LandingPage() {
               </h3>
               <p className="text-sm font-bold text-slate-400 leading-relaxed">
                 "I was here" vs "The system says no." Stop arguing over missing
-                punches when faces provide indisputable physical proof.
+                punches when every event is backed by a tamper-evident audit
+                trail.
               </p>
             </div>
           </div>
@@ -423,7 +490,7 @@ export default function LandingPage() {
               How It Works
             </h2>
             <p className="text-lg font-bold text-slate-400">
-              Three simple steps to irrefutable time tracking.
+              Three simple steps to secure, audit-ready time tracking.
             </p>
           </motion.div>
 
@@ -466,14 +533,52 @@ export default function LandingPage() {
               </h3>
               <p className="text-sm font-bold text-slate-400">
                 Clock events are recorded to the immutable ledger instantly and
-                populate the dashboard with exportable payroll reports.
+                populate the dashboard with a tamper-evident timeline and
+                exportable payroll reports.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 6) Features Grid */}
+      {/* 6) Setup */}
+      <section className="py-24 mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+          <div className="space-y-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
+              Setup in 10 minutes
+            </p>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white">
+              Launch one site fast, then scale by location.
+            </h2>
+            <p className="max-w-2xl text-lg font-bold text-slate-400">
+              The first deployment is intentionally simple: create an
+              organization, enroll your team, bind a kiosk, and start capturing
+              attendance in one session.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <ol className="space-y-5">
+              {[
+                "Create your organization and admin account",
+                "Add employees and complete face enrollment",
+                "Generate a kiosk activation token",
+                "Bind a tablet or laptop to your organization",
+                "Start clocking and review the live activity feed",
+              ].map((step, index) => (
+                <li key={step} className="flex items-start gap-4">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-xs font-black text-cyan-300">
+                    {index + 1}
+                  </span>
+                  <p className="text-sm font-bold text-slate-300">{step}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* 7) Features Grid */}
       <section
         className="py-24 lg:py-32 mx-auto max-w-7xl px-6 lg:px-8"
         id="features"
@@ -689,7 +794,7 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* 7) Security & Compliance */}
+      {/* 8) Security & Compliance */}
       <section
         className="py-24 bg-slate-900 border-y border-white/5"
         id="security"
@@ -724,7 +829,7 @@ export default function LandingPage() {
                     </h4>
                     <p className="text-sm font-bold text-slate-400">
                       We store embeddings (mathematical vectors), not raw
-                      images, inside secure PostGres Vector stores.
+                      images, inside secure PostgreSQL + pgvector stores.
                     </p>
                   </div>
                 </div>
@@ -822,7 +927,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 8) Use Cases */}
+      {/* 9) FAQ */}
+      <section className="py-24 mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="max-w-3xl space-y-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
+            FAQ
+          </p>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white">
+            Questions teams ask before they roll this out.
+          </h2>
+          <p className="text-lg font-bold text-slate-400">
+            Face products need clear answers. Put the risk and privacy questions
+            on the page before your buyers have to ask.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
+          {[
+            {
+              question: "Do you store photos or only embeddings?",
+              answer:
+                "The platform stores face embeddings for recognition and uses a server-controlled audit trail. Raw photo retention should stay optional and policy-driven.",
+            },
+            {
+              question: "What happens when recognition fails?",
+              answer:
+                "The kiosk rejects the attempt, records the failure path, and lets the employee retry. Admins can review activity and re-enroll if needed.",
+            },
+            {
+              question: "What does the liveness check do?",
+              answer:
+                "The kiosk asks the employee to complete a live action such as a blink before a match is accepted, reducing photo and replay spoofing.",
+            },
+            {
+              question: "Can admins edit clock records silently?",
+              answer:
+                "The current product keeps event history and exception handling in the admin workflow. Position it as tamper-evident and auditable rather than unchangeable.",
+            },
+          ].map((item) => (
+            <div
+              key={item.question}
+              className="rounded-3xl border border-white/10 bg-white/5 p-7"
+            >
+              <h3 className="text-lg font-black text-white">{item.question}</h3>
+              <p className="mt-3 text-sm font-bold leading-relaxed text-slate-400">
+                {item.answer}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 10) Use Cases */}
       <section className="py-24 mx-auto max-w-7xl px-6 lg:px-8 text-center">
         <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-12">
           Perfect for organizations that manage people on-site.
@@ -845,7 +1000,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 9) Pricing */}
+      {/* 11) Pricing */}
       <section
         className="py-24 bg-slate-950 border-t border-white/5"
         id="pricing"
@@ -1001,16 +1156,19 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-12 text-center">
-            <button className="h-14 px-8 rounded-xl bg-white text-slate-950 text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2 mx-auto">
+            <a
+              href="#contact"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-white px-8 text-xs font-black uppercase tracking-widest text-slate-950 transition-all hover:bg-slate-200 mx-auto"
+            >
               View Full Pricing & Book Demo{" "}
               <ArrowRightIcon className="w-4 h-4" />
-            </button>
+            </a>
           </div>
         </div>
       </section>
 
-      {/* 10) Final CTA Block */}
-      <section className="py-32 relative overflow-hidden">
+      {/* 12) Final CTA Block */}
+      <section className="py-32 relative overflow-hidden" id="contact">
         <div className="absolute inset-x-0 bottom-0 h-full bg-linear-to-t from-cyan-900/40 to-transparent pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -1026,12 +1184,18 @@ export default function LandingPage() {
             Start with a demo, or launch a free trial today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <button className="w-full sm:w-auto h-16 px-10 rounded-xl bg-cyan-600 text-white text-sm font-black uppercase tracking-widest hover:bg-cyan-500 transition-all shadow-xl hover:shadow-cyan-500/50 transform hover:-translate-y-1">
+            <a
+              href="#contact"
+              className="flex h-16 w-full items-center justify-center rounded-xl bg-cyan-600 px-10 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-cyan-500 shadow-xl hover:shadow-cyan-500/50 transform hover:-translate-y-1 sm:w-auto"
+            >
               Book a Demo
-            </button>
-            <button className="w-full sm:w-auto h-16 px-10 rounded-xl bg-white text-slate-950 text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl transform hover:-translate-y-1">
+            </a>
+            <Link
+              href="/login"
+              className="flex h-16 w-full items-center justify-center rounded-xl bg-white px-10 text-sm font-black uppercase tracking-widest text-slate-950 transition-all hover:bg-slate-200 shadow-xl transform hover:-translate-y-1 sm:w-auto"
+            >
               Start Free Trial
-            </button>
+            </Link>
           </div>
         </motion.div>
       </section>
@@ -1040,11 +1204,7 @@ export default function LandingPage() {
       <footer className="py-12 border-t border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-black uppercase tracking-[0.3em] text-white">
-                {BRAND_COMPANY}
-              </span>
-            </div>
+            <BrandLogo size="sm" />
             <p className="text-xs font-bold text-slate-500 pr-4">
               Automated, verifiable, and secure attendance powered by neural
               networks.
@@ -1056,19 +1216,19 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-2 text-xs font-bold text-slate-500">
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <a href="#features" className="hover:text-cyan-400">
                   Features
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <a href="#pricing" className="hover:text-cyan-400">
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <Link href="/kiosk" className="hover:text-cyan-400">
                   Kiosk Mode
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -1078,17 +1238,17 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-2 text-xs font-bold text-slate-500">
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <a href="#product" className="hover:text-cyan-400">
                   About
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <a href="#security" className="hover:text-cyan-400">
                   Security
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <a href="#contact" className="hover:text-cyan-400">
                   Contact Us
                 </a>
               </li>
@@ -1100,27 +1260,26 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-2 text-xs font-bold text-slate-500">
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <Link href="/privacy" className="hover:text-cyan-400">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <Link href="/terms" className="hover:text-cyan-400">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-cyan-400">
+                <Link href="/cookies" className="hover:text-cyan-400">
                   Cookie Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-white/5 mx-auto max-w-7xl px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-bold text-slate-600">
           <p>
-            © {new Date().getFullYear()} {BRAND_COMPANY} {BRAND_PRODUCT}. All
-            rights reserved.
+            © {new Date().getFullYear()} All rights reserved.
           </p>
           <p>Deployed securely.</p>
         </div>

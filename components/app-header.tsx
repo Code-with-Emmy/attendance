@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
+import { BrandLogo } from "@/components/brand-logo";
 
 type Props = {
   role: "USER" | "ADMIN";
   email: string;
   organizationName?: string;
   active:
+    | "ADMIN_HOME"
     | "ATTENDANCE"
     | "ADMIN_HISTORY"
     | "ADMIN_ENROLL"
@@ -38,21 +39,18 @@ export function AppHeader({
     <header className="mb-12 border-2 border-slate-200 bg-white p-6 rounded-lg">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-900">
-              {BRAND_COMPANY}
-            </span>
-            <div className="h-4 w-px bg-slate-200" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
-              {BRAND_PRODUCT}
-            </span>
-          </div>
+          <BrandLogo size="sm" className="h-11 w-11 md:h-14 md:w-14" />
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             {organizationName} &middot; {email}
           </p>
         </div>
 
         <nav className="flex flex-wrap items-center gap-2">
+          {role === "ADMIN" && (
+            <Link href="/admin" className={linkClass(active === "ADMIN_HOME")}>
+              Overview
+            </Link>
+          )}
           <Link href="/kiosk" className={linkClass(active === "ATTENDANCE")}>
             Kiosk
           </Link>

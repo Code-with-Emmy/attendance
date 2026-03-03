@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ApiError } from "@/lib/server/errors";
 
@@ -7,6 +8,10 @@ export type DeviceContext = {
   name: string;
 };
 
+export function hashDeviceToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 export async function requireDevice(req: Request): Promise<DeviceContext> {
   const token = req.headers.get("x-kiosk-token");
 
@@ -14,8 +19,12 @@ export async function requireDevice(req: Request): Promise<DeviceContext> {
     throw new ApiError(401, "Missing kiosk device token.");
   }
 
-  const device = await prisma.device.findUnique({
-    where: { token },
+  const tokenHash = hashDeviceToken(token);
+
+  const device = await prisma.device.findFirst({
+    where: {
+      OR: [{ token: tokenHash }, { token }],
+    },
     select: {
       id: true,
       organizationId: true,

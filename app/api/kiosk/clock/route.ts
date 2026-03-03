@@ -1,11 +1,22 @@
 import { AttendanceType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { FACE_MATCH_THRESHOLD, RATE_LIMIT_CONFIG } from "@/lib/config";
+import { RATE_LIMIT_CONFIG } from "@/lib/config";
 import { ApiError, toErrorResponse } from "@/lib/server/errors";
-import { euclideanDistance, toEmbeddingArray } from "@/lib/server/face";
+import {
+  decideKioskClockForMatch,
+  matchKioskEmployeeFace,
+} from "@/lib/server/kiosk-attendance";
+import {
+  getRequestId,
+  logError,
+  logInfo,
+  withRequestId,
+} from "@/lib/server/observability";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { requireDevice } from "@/lib/server/device-auth";
 import { verifyFaceSchema } from "@/lib/validation";
+import { processAttendanceEvent } from "@/lib/server/attendance-service";
 
 function getClientIp(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -19,138 +30,120 @@ function getClientIp(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
+  const ip = getClientIp(req);
+
   try {
-    const ip = getClientIp(req);
-    enforceRateLimit("kiosk-clock", ip, RATE_LIMIT_CONFIG.clock.limit, RATE_LIMIT_CONFIG.clock.windowMs);
+    const device = await requireDevice(req);
+
+    enforceRateLimit(
+      "kiosk-clock",
+      ip,
+      RATE_LIMIT_CONFIG.clock.limit,
+      RATE_LIMIT_CONFIG.clock.windowMs,
+    );
 
     const body = await req.json();
     const type = body?.type as AttendanceType | undefined;
-    if (type !== AttendanceType.CLOCK_IN && type !== AttendanceType.CLOCK_OUT) {
-      throw new ApiError(400, "Invalid clock type.");
+    if (!type) {
+      throw new ApiError(400, "Missing clock type.");
     }
 
     const parsed = verifyFaceSchema.parse({ embedding: body?.embedding });
+    const embeddingStr = `[${parsed.embedding.join(",")}]`;
 
-    const candidates = await prisma.employee.findMany({
-      where: {
-        faceEmbedding: {
-          not: Prisma.AnyNull,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        faceEmbedding: true,
-      },
+    // 1. Scalable pgvector matching (Phase 5)
+    // We search across all stored embeddings for this organization
+    const matches = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT e."id", e."name", e."email", e."organizationId",
+              (v."embedding" <-> $1::vector) as "matchDistance"
+       FROM "Employee" e
+       JOIN "EmployeeFaceEmbedding" v ON e."id" = v."employeeId"
+       WHERE e."organizationId" = $2::uuid
+       ORDER BY "matchDistance" ASC
+       LIMIT 1`,
+      embeddingStr,
+      device.organizationId
+    );
+
+    if (matches.length === 0) {
+      throw new ApiError(401, "Face not recognized. Please enroll first.");
+    }
+
+    const bestMatch = matches[0];
+    
+    // threshold Check (Legacy similarity thresholding)
+    const matchThreshold = 0.45; // lower is better for L2
+    if (bestMatch.matchDistance > matchThreshold) {
+       throw new ApiError(401, "Face match confidence too low.");
+    }
+
+    const matchDecision = {
+      kind: "SUCCESS" as const,
+      employee: bestMatch,
+      matchDistance: bestMatch.matchDistance,
+      matchScore: 1 - bestMatch.matchDistance,
+      matchThreshold
+    };
+
+    logInfo("Kiosk match verified", {
+      requestId,
+      route: "/api/kiosk/clock",
+      ip,
+      employeeId: matchDecision.employee.id,
+      matchScore: matchDecision.matchScore,
+      matchDistance: matchDecision.matchDistance,
     });
 
-    if (!candidates.length) {
-      throw new ApiError(400, "No enrolled employee faces found. Ask admin to enroll employees.");
-    }
-
-    let bestMatch:
-      | {
-          id: string;
-          name: string;
-          email: string | null;
-          distance: number;
-        }
-      | null = null;
-
-    for (const candidate of candidates) {
-      const stored = toEmbeddingArray(candidate.faceEmbedding);
-      if (!stored) {
-        continue;
-      }
-
-      const distance = euclideanDistance(parsed.embedding, stored);
-      if (!bestMatch || distance < bestMatch.distance) {
-        bestMatch = {
-          id: candidate.id,
-          name: candidate.name,
-          email: candidate.email,
-          distance,
-        };
-      }
-    }
-
-    if (!bestMatch || bestMatch.distance > FACE_MATCH_THRESHOLD) {
-      throw new ApiError(403, "Face not recognized. Try again.");
-    }
-
-    const latest = await prisma.attendance.findFirst({
-      where: { employeeId: bestMatch.id },
-      orderBy: { timestamp: "desc" },
-      select: { type: true, timestamp: true },
+    // 2. Process with the robust session service
+    const result = await processAttendanceEvent({
+      employeeId: matchDecision.employee.id,
+      organizationId: matchDecision.employee.organizationId as string,
+      type,
+      distance: matchDecision.matchDistance,
+      userAgent: req.headers.get("user-agent"),
+      idempotencyKey: body?.idempotencyKey,
+      timestamp: body?.timestamp ? new Date(body.timestamp) : new Date(),
     });
 
-    if (type === AttendanceType.CLOCK_IN && latest?.type === AttendanceType.CLOCK_IN) {
-      return NextResponse.json({
+    if (result.kind === "WARNING") {
+      return withRequestId(
+        NextResponse.json({
+          success: true,
+          alreadyDone: true,
+          employee: matchDecision.employee,
+          entry: {
+            ...result.event,
+            timestamp: result.event.timestamp.toISOString(),
+            isWarning: true,
+            message: result.message,
+          },
+        }),
+        requestId,
+      );
+    }
+
+    return withRequestId(
+      NextResponse.json({
         success: true,
-        alreadyDone: true,
-        employee: {
-          id: bestMatch.id,
-          name: bestMatch.name,
-          email: bestMatch.email,
-        },
+        employee: matchDecision.employee,
         entry: {
-          ...latest,
-          timestamp: latest.timestamp.toISOString(),
-          isWarning: true,
-          message: `${bestMatch.name} is already clocked in.`,
+          ...result.event,
+          timestamp: result.event.timestamp.toISOString(),
         },
-      });
-    }
-
-    if (type === AttendanceType.CLOCK_OUT && latest?.type !== AttendanceType.CLOCK_IN) {
-      return NextResponse.json({
-        success: true,
-        alreadyDone: true,
-        employee: {
-          id: bestMatch.id,
-          name: bestMatch.name,
-          email: bestMatch.email,
-        },
-        entry: {
-          type: "CLOCK_OUT",
-          timestamp: new Date().toISOString(),
-          isWarning: true,
-          message: `${bestMatch.name} must clock in before clocking out.`,
-        },
-      });
-    }
-
-    const entry = await prisma.attendance.create({
-      data: {
-        employeeId: bestMatch.id,
-        type,
-        distance: bestMatch.distance,
-        timestamp: new Date(),
-        userAgent: req.headers.get("user-agent"),
-      },
-      select: {
-        id: true,
-        type: true,
-        distance: true,
-        timestamp: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      employee: {
-        id: bestMatch.id,
-        name: bestMatch.name,
-        email: bestMatch.email,
-      },
-      entry: {
-        ...entry,
-        timestamp: entry.timestamp.toISOString(),
-      },
-      threshold: FACE_MATCH_THRESHOLD,
-    });
+        threshold: matchDecision.matchThreshold,
+      }),
+      requestId,
+    );
   } catch (error) {
-    return toErrorResponse(error, "Kiosk clock failed.");
+    logError("Kiosk clock failed", error, {
+      requestId,
+      route: "/api/kiosk/clock",
+      ip,
+    });
+    return withRequestId(
+      toErrorResponse(error, "Kiosk clock failed."),
+      requestId,
+    );
   }
 }

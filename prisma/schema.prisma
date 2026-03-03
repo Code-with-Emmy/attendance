@@ -16,21 +16,130 @@ enum Role {
 enum AttendanceType {
   CLOCK_IN
   CLOCK_OUT
+  BREAK_START
+  BREAK_END
+}
+
+enum SessionStatus {
+  CLOCKED_IN
+  CLOCKED_OUT
+  ON_BREAK
+}
+
+model Organization {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String       @unique
+  users        User[]
+  employees    Employee[]
+  attendances  Attendance[]
+  devices      Device[]
+  sessions     AttendanceSession[]
+  violations   AttendanceViolation[]
+  shifts       Shift[]
+  shiftAssignments EmployeeShiftAssignment[]
+  shiftOverrides   ShiftOverride[]
+  faceEmbeddings   EmployeeFaceEmbedding[]
+  payPeriods       PayPeriod[]
+  paySummaries     EmployeePaySummary[]
+  subscription     OrganizationSubscription?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  code            String   @unique // e.g. "free", "growth", "pro"
+  maxEmployees    Int      @default(10)
+  maxDevices      Int      @default(1)
+  priceMonthly    Int      @default(0) // in cents
+  features        Json?
+  subscriptions   OrganizationSubscription[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrganizationSubscription {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @unique @db.Uuid
+  planId          String   @db.Uuid
+  status          String   @default("active") // "active", "past_due", "canceled"
+  currentPeriodEnd DateTime?
+  externalId      String?  // Stripe/Flutterwave reference
+  
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PayPeriod {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  startDate      DateTime @db.Date
+  endDate        DateTime @db.Date
+  status         String   @default("open") // "open", "closed", "paid"
+  
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  summaries      EmployeePaySummary[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, startDate, endDate])
+}
+
+model EmployeePaySummary {
+  id             String   @id @default(uuid()) @db.Uuid
+  employeeId     String   @db.Uuid
+  organizationId String   @db.Uuid
+  payPeriodId    String   @db.Uuid
+  
+  totalHours     Float    @default(0)
+  overtimeHours  Float    @default(0)
+  basePay        Int      @default(0) // in cents
+  overtimePay    Int      @default(0)
+  bonusPay       Int      @default(0)
+  deductions     Int      @default(0)
+  meta           Json?
+  
+  employee       Employee     @relation(fields: [employeeId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  payPeriod      PayPeriod    @relation(fields: [payPeriodId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([employeeId, payPeriodId])
+}
+
+model Device {
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String
+  token          String       @unique
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  lastActiveAt   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([token])
 }
 
 model User {
-  id             String       @id @db.Uuid
-  email          String       @unique
+  id             String        @id @db.Uuid
+  email          String        @unique
   name           String?
   phone          String?
   department     String?
   title          String?
   bio            String?
-  role           Role         @default(USER)
+  role           Role          @default(USER)
   faceEmbedding  Json?
   faceEnrolledAt DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  organizationId String?       @db.Uuid
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Employee {
@@ -43,21 +152,142 @@ model Employee {
   bio            String?
   faceEmbedding  Json?
   faceEnrolledAt DateTime?
+  organizationId String       @db.Uuid
+  organization   Organization        @relation(fields: [organizationId], references: [id])
   attendances    Attendance[]
+  sessions       AttendanceSession[]
+  violations     AttendanceViolation[]
+  shiftAssignments EmployeeShiftAssignment[]
+  shiftOverrides   ShiftOverride[]
+  faceEmbeddings   EmployeeFaceEmbedding[]
+  paySummaries     EmployeePaySummary[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model EmployeeFaceEmbedding {
+  id             String   @id @default(uuid()) @db.Uuid
+  employeeId     String   @db.Uuid
+  organizationId String   @db.Uuid
+  embedding      Unsupported("vector(128)")
+  createdAt      DateTime @default(now())
+
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([employeeId])
+  @@index([organizationId])
+}
+
+model Attendance {
+  id             String         @id @default(uuid()) @db.Uuid
+  employeeId     String         @db.Uuid
+  organizationId String         @db.Uuid
+  sessionId      String?        @db.Uuid
+  type           AttendanceType
+  timestamp      DateTime       @default(now())
+  distance       Float
+  userAgent      String?
+  idempotencyKey String?        @unique
+  createdAt      DateTime       @default(now())
+
+  employee     Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  session      AttendanceSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([employeeId])
+  @@index([timestamp])
+  @@index([organizationId])
+  @@index([sessionId])
+  @@index([idempotencyKey])
+}
+
+model Shift {
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String
+  startTime      String       // e.g. "09:00"
+  endTime        String       // e.g. "17:00"
+  graceMinutes   Int          @default(15)
+  maxBreakMinutes Int         @default(60)
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  assignments    EmployeeShiftAssignment[]
+  overrides      ShiftOverride[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 
-model Attendance {
-  id        String         @id @default(uuid()) @db.Uuid
-  employeeId String        @db.Uuid
-  type      AttendanceType
-  timestamp DateTime       @default(now())
-  distance  Float
-  userAgent String?
-  createdAt DateTime       @default(now())
-  employee  Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+model EmployeeShiftAssignment {
+  id             String       @id @default(uuid()) @db.Uuid
+  employeeId     String       @db.Uuid
+  shiftId        String       @db.Uuid
+  startDate      DateTime     @db.Date
+  endDate        DateTime?    @db.Date
+  organizationId String       @db.Uuid
+  
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift          Shift        @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model ShiftOverride {
+  id             String       @id @default(uuid()) @db.Uuid
+  employeeId     String       @db.Uuid
+  shiftId        String?      @db.Uuid
+  date           DateTime     @db.Date
+  organizationId String       @db.Uuid
+  
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift          Shift?       @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model AttendanceSession {
+  id             String        @id @default(uuid()) @db.Uuid
+  employeeId     String        @db.Uuid
+  organizationId String        @db.Uuid
+  workDate       DateTime      @db.Date
+  status         SessionStatus
+  clockInAt      DateTime
+  clockOutAt     DateTime?
+  breakMinutes   Int           @default(0)
+  
+  // Computed Shift Metrics
+  lateMinutes      Int?
+  overtimeMinutes  Int?
+  earlyLeaveMinutes Int?
+  
+  lastEventAt    DateTime      @default(now())
+  events         Attendance[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([employeeId, workDate])
+  @@index([employeeId])
+  @@index([organizationId])
+  @@index([workDate])
+}
+
+model AttendanceViolation {
+  id             String   @id @default(uuid()) @db.Uuid
+  employeeId     String   @db.Uuid
+  organizationId String   @db.Uuid
+  type           String // e.g. "DOUBLE_CLOCK_IN", "UNAUTHORIZED_DEVICE"
+  message        String
+  timestamp      DateTime @default(now())
+  meta           Json?
+  createdAt      DateTime @default(now())
+
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@index([employeeId])
+  @@index([organizationId])
   @@index([timestamp])
 }
+

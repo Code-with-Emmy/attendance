@@ -5,6 +5,8 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 export type AuthContext = {
   dbUser: User;
+  organizationId: string;
+  organizationName: string;
   ip: string;
   accessToken: string;
 };
@@ -64,12 +66,18 @@ export async function upsertAppUser(identity: AppUserIdentity) {
   const existing = await prisma.user.findUnique({ where: { id } });
 
   if (!existing) {
+    const defaultOrg = await prisma.organization.findFirst({
+      where: { slug: "default" },
+      select: { id: true },
+    });
+
     return prisma.user.create({
       data: {
         id,
         email,
         name,
         role: shouldBeAdmin ? Role.ADMIN : Role.USER,
+        organizationId: defaultOrg?.id,
       },
     });
   }
@@ -119,8 +127,16 @@ export async function requireAuth(req: Request): Promise<AuthContext> {
     name,
   });
 
+  const organizationId = requireOrg(dbUser);
+  const organization = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { name: true },
+  });
+
   return {
     dbUser,
+    organizationId,
+    organizationName: organization?.name ?? "Unknown Organization",
     ip: getClientIp(req),
     accessToken: token,
   };
@@ -130,4 +146,11 @@ export function requireAdmin(user: User) {
   if (user.role !== Role.ADMIN) {
     throw new ApiError(403, "Admin access required.");
   }
+}
+
+export function requireOrg(user: User): string {
+  if (!user.organizationId) {
+    throw new ApiError(403, "Organization context required. Please contact support.");
+  }
+  return user.organizationId;
 }

@@ -16,6 +16,8 @@ export type AppUser = {
   bio: string | null;
   role: "USER" | "ADMIN";
   faceEnrolledAt: string | null;
+  organizationId: string;
+  organizationName: string;
 };
 
 export function useAuthUser(options?: { requireAdmin?: boolean }) {

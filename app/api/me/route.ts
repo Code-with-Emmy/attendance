@@ -20,6 +20,8 @@ export async function GET(req: Request) {
       title: auth.dbUser.title,
       bio: auth.dbUser.bio,
       role: auth.dbUser.role,
+      organizationId: auth.organizationId,
+      organizationName: auth.organizationName,
       faceEnrolledAt: auth.dbUser.faceEnrolledAt?.toISOString() ?? null,
     });
   } catch (error) {

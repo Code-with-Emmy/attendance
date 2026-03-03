@@ -1,4 +1,4 @@
-import { EMBEDDING_DIMENSION } from "@/lib/config";
+import { EMBEDDING_DIMENSION } from "../config.ts";
 
 export function toEmbeddingArray(raw: unknown): number[] | null {
   if (!Array.isArray(raw)) {

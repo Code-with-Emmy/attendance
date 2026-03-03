@@ -6,7 +6,15 @@ import { BRAND_COMPANY, BRAND_PRODUCT } from "@/lib/branding";
 type Props = {
   role: "USER" | "ADMIN";
   email: string;
-  active: "ATTENDANCE" | "ADMIN_HISTORY" | "ADMIN_ENROLL";
+  organizationName?: string;
+  active:
+    | "ATTENDANCE"
+    | "ADMIN_HISTORY"
+    | "ADMIN_ENROLL"
+    | "ADMIN_DEVICES"
+    | "ADMIN_VIOLATIONS"
+    | "ADMIN_SHIFTS"
+    | "ADMIN_PAYROLL";
   onSignOut: () => Promise<void> | void;
 };
 
@@ -19,7 +27,13 @@ function linkClass(isActive: boolean) {
   ].join(" ");
 }
 
-export function AppHeader({ role, email, active, onSignOut }: Props) {
+export function AppHeader({
+  role,
+  email,
+  organizationName = "Default Organization",
+  active,
+  onSignOut,
+}: Props) {
   return (
     <header className="mb-12 border-2 border-slate-200 bg-white p-6 rounded-lg">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -34,7 +48,7 @@ export function AppHeader({ role, email, active, onSignOut }: Props) {
             </span>
           </div>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-            Session: {email}
+            {organizationName} &middot; {email}
           </p>
         </div>
 
@@ -56,6 +70,30 @@ export function AppHeader({ role, email, active, onSignOut }: Props) {
               className={linkClass(active === "ADMIN_HISTORY")}
             >
               Records
+            </Link>
+          )}
+          {role === "ADMIN" && (
+            <Link
+              href="/admin/devices"
+              className={linkClass(active === "ADMIN_DEVICES")}
+            >
+              Terminals
+            </Link>
+          )}
+          {role === "ADMIN" && (
+            <Link
+              href="/admin/violations"
+              className={linkClass(active === "ADMIN_VIOLATIONS")}
+            >
+              Alerts
+            </Link>
+          )}
+          {role === "ADMIN" && (
+            <Link
+              href="/admin/shifts"
+              className={linkClass(active === "ADMIN_SHIFTS")}
+            >
+              Shifts
             </Link>
           )}
           <button

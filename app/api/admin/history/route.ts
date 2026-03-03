@@ -19,15 +19,17 @@ export async function GET(req: Request) {
       end: searchParams.get("end") ?? undefined,
     });
 
-    const where =
-      query.start || query.end
+    const where = {
+      organizationId: auth.organizationId,
+      ...(query.start || query.end
         ? {
             timestamp: {
               ...(query.start ? { gte: new Date(query.start) } : {}),
               ...(query.end ? { lt: new Date(query.end) } : {}),
             },
           }
-        : undefined;
+        : {}),
+    };
 
     const rows = await prisma.attendance.findMany({
       where,

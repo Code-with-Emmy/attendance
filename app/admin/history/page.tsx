@@ -4,14 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { apiFetch } from "@/lib/client/api";
 import { useAuthUser } from "@/hooks/use-auth-user";
-import { BRAND_COMPANY } from "@/lib/branding";
 import { BrandLoader } from "@/components/brand-loader";
 
-type AdminHistoryRow = {
+type AdminSessionRow = {
   id: string;
-  type: "CLOCK_IN" | "CLOCK_OUT";
-  timestamp: string;
-  distance: number;
+  status: "CLOCKED_IN" | "CLOCKED_OUT" | "ON_BREAK";
+  workDate: string;
+  clockInAt: string;
+  clockOutAt: string | null;
+  breakMinutes: number;
+  lateMinutes: number | null;
+  overtimeMinutes: number | null;
+  earlyLeaveMinutes: number | null;
   employee: {
     id: string;
     email: string | null;
@@ -128,84 +132,57 @@ function resolveRange(
   };
 }
 
-function buildHoursSummary(rows: AdminHistoryRow[]) {
-  const grouped = new Map<string, AdminHistoryRow[]>();
+function buildHoursSummaryFromSessions(sessions: AdminSessionRow[]) {
+  const grouped = new Map<string, AdminSessionRow[]>();
 
-  for (const row of rows) {
-    const existing = grouped.get(row.employee.id);
+  for (const session of sessions) {
+    const existing = grouped.get(session.employee.id);
     if (existing) {
-      existing.push(row);
+      existing.push(session);
     } else {
-      grouped.set(row.employee.id, [row]);
+      grouped.set(session.employee.id, [session]);
     }
   }
 
-  const hoursByEmployee = new Map<string, number>();
-  const activeByEmployee = new Map<string, boolean>();
   const summaries: EmployeeHoursSummary[] = [];
-  const now = Date.now();
+  const hoursByEmployee = new Map<string, number>();
 
-  for (const [employeeId, entries] of grouped.entries()) {
-    const sorted = [...entries].sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
-
-    let openClockIn: number | null = null;
+  for (const [employeeId, empSessions] of grouped.entries()) {
     let totalMs = 0;
-    let sessions = 0;
+    let activeSession = false;
 
-    for (const entry of sorted) {
-      const ts = new Date(entry.timestamp).getTime();
-
-      if (entry.type === "CLOCK_IN") {
-        openClockIn = ts;
-        continue;
+    for (const s of empSessions) {
+      const start = new Date(s.clockInAt).getTime();
+      const end = s.clockOutAt ? new Date(s.clockOutAt).getTime() : Date.now();
+      totalMs += end - start - s.breakMinutes * 60000;
+      if (s.status === "CLOCKED_IN" || s.status === "ON_BREAK") {
+        activeSession = true;
       }
-
-      if (openClockIn !== null && ts > openClockIn) {
-        totalMs += ts - openClockIn;
-        sessions += 1;
-        openClockIn = null;
-      }
-    }
-
-    const activeSession = openClockIn !== null;
-    if (activeSession && openClockIn !== null && now > openClockIn) {
-      totalMs += now - openClockIn;
     }
 
     const totalHours = totalMs / 3_600_000;
-    const name =
-      sorted[sorted.length - 1]?.employee.name ||
-      sorted[sorted.length - 1]?.employee.email ||
-      "Unknown Employee";
+    const name = empSessions[0]?.employee.name || "Unknown";
 
     hoursByEmployee.set(employeeId, totalHours);
-    activeByEmployee.set(employeeId, activeSession);
     summaries.push({
       employeeId,
       employeeName: name,
       totalHours,
-      sessions,
+      sessions: empSessions.length,
       activeSession,
     });
   }
 
   summaries.sort((a, b) => b.totalHours - a.totalHours);
 
-  return {
-    summaries,
-    hoursByEmployee,
-    activeByEmployee,
-  };
+  return { summaries, hoursByEmployee };
 }
 
 export default function AdminHistoryPage() {
   const { user, session, loading, signOut } = useAuthUser({
     requireAdmin: true,
   });
-  const [rows, setRows] = useState<AdminHistoryRow[]>([]);
+  const [sessionRows, setSessionRows] = useState<AdminSessionRow[]>([]);
   const [rowsLoading, setRowsLoading] = useState(true);
   const [rowsError, setRowsError] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
@@ -226,24 +203,13 @@ export default function AdminHistoryPage() {
     [rangePreset, customStartDate, customEndDate],
   );
 
-  const rangeValidationError =
-    rangePreset === "CUSTOM" && !resolvedRange.valid
-      ? "Please pick a valid start and end date."
-      : "";
-
   const { summaries, hoursByEmployee } = useMemo(
-    () => buildHoursSummary(rows),
-    [rows],
+    () => buildHoursSummaryFromSessions(sessionRows),
+    [sessionRows],
   );
 
   useEffect(() => {
-    if (!session?.access_token) {
-      return;
-    }
-
-    if (!resolvedRange.valid) {
-      return;
-    }
+    if (!session?.access_token || !resolvedRange.valid) return;
 
     void (async () => {
       setRowsLoading(true);
@@ -251,26 +217,21 @@ export default function AdminHistoryPage() {
 
       try {
         const params = new URLSearchParams();
-        params.set("limit", "5000");
-        if (resolvedRange.start) {
-          params.set("start", resolvedRange.start);
-        }
-        if (resolvedRange.end) {
-          params.set("end", resolvedRange.end);
-        }
+        params.set("limit", "1000");
+        if (resolvedRange.start) params.set("start", resolvedRange.start);
+        if (resolvedRange.end) params.set("end", resolvedRange.end);
 
-        const data = await apiFetch<AdminHistoryRow[]>(
-          `/api/admin/history?${params.toString()}`,
+        const data = await apiFetch<AdminSessionRow[]>(
+          `/api/admin/sessions?${params.toString()}`,
           {
-            method: "GET",
             accessToken: session.access_token,
           },
         );
-        setRows(data);
+        setSessionRows(data);
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Failed to load history.";
-        setRowsError(msg);
+        setRowsError(
+          err instanceof Error ? err.message : "Failed to load sessions.",
+        );
       } finally {
         setRowsLoading(false);
       }
@@ -459,7 +420,7 @@ export default function AdminHistoryPage() {
               <div className="h-64 flex items-center justify-center">
                 <div className="h-10 w-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
               </div>
-            ) : rows.length === 0 ? (
+            ) : sessionRows.length === 0 ? (
               <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-xl">
                 <p className="text-lg font-bold text-slate-300 uppercase tracking-widest">
                   No shift records found.
@@ -477,7 +438,7 @@ export default function AdminHistoryPage() {
                       <p className="text-[9px] font-black uppercase tracking-widest text-blue-600 mb-2">
                         Total Time
                       </p>
-                      <h4 className="text-xl font-black text-slate-900 tracking-tight mb-4">
+                      <h4 className="text-xl font-black text-slate-900 tracking-tight mb-4 text-ellipsis overflow-hidden whitespace-nowrap">
                         {summary.employeeName}
                       </h4>
                       <div className="flex items-baseline gap-1">
@@ -500,7 +461,7 @@ export default function AdminHistoryPage() {
                   ))}
                 </div>
 
-                {/* Plain Table */}
+                {/* Sessions Table */}
                 <div className="overflow-x-auto border border-slate-100 rounded-xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -509,65 +470,178 @@ export default function AdminHistoryPage() {
                           Person
                         </th>
                         <th className="py-4 px-6 text-xs text-blue-600">
-                          Action
+                          Status
                         </th>
                         <th className="py-4 px-6 text-xs text-blue-600">
-                          Date & Time
+                          Clock In
+                        </th>
+                        <th className="py-4 px-6 text-xs text-blue-600">
+                          Clock Out
                         </th>
                         <th className="py-4 px-6 text-xs text-blue-600 text-right">
-                          Running Total
+                          Duration
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {rows.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="group hover:bg-blue-50/20 transition-colors"
-                        >
-                          <td className="py-5 px-6">
-                            <p className="text-lg font-black text-slate-900 tracking-tight">
-                              {row.employee.name || "Unknown"}
-                            </p>
-                            <p className="text-xs font-bold text-slate-400">
-                              {row.employee.email}
-                            </p>
-                          </td>
-                          <td className="py-5 px-6">
-                            <span
-                              className={`px-4 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${
-                                row.type === "CLOCK_IN"
-                                  ? "bg-emerald-100 text-emerald-600"
-                                  : "bg-blue-100 text-blue-600"
-                              }`}
-                            >
-                              {row.type === "CLOCK_IN" ? "Start" : "End"}
-                            </span>
-                          </td>
-                          <td className="py-5 px-6">
-                            <p className="text-sm font-black text-slate-900">
-                              {new Date(row.timestamp).toLocaleDateString([], {
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </p>
-                            <p className="text-xs font-bold text-slate-400">
-                              {new Date(row.timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                          </td>
-                          <td className="py-5 px-6 text-right">
-                            <p className="text-xl font-black text-slate-900 tracking-tighter">
-                              {(
-                                hoursByEmployee.get(row.employee.id) || 0
-                              ).toFixed(1)}
-                              h
-                            </p>
-                          </td>
-                        </tr>
-                      ))}
+                      {sessionRows.map((row) => {
+                        const start = new Date(row.clockInAt);
+                        const end = row.clockOutAt
+                          ? new Date(row.clockOutAt)
+                          : null;
+                        const durationHrs = end
+                          ? (end.getTime() -
+                              start.getTime() -
+                              row.breakMinutes * 60000) /
+                            3600000
+                          : (Date.now() -
+                              start.getTime() -
+                              row.breakMinutes * 60000) /
+                            3600000;
+
+                        return (
+                          <tr
+                            key={row.id}
+                            className="group hover:bg-blue-50/20 transition-colors"
+                          >
+                            <td className="py-5 px-6">
+                              <p className="text-lg font-black text-slate-900 tracking-tight">
+                                {row.employee.name || "Unknown"}
+                              </p>
+                              <p className="text-xs font-bold text-slate-400">
+                                {row.employee.email}
+                              </p>
+                            </td>
+                            <td className="py-5 px-6">
+                              <div className="flex flex-col gap-1 items-start">
+                                <span
+                                  className={`px-4 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                                    row.status === "CLOCKED_OUT"
+                                      ? "bg-slate-100 text-slate-600"
+                                      : row.status === "ON_BREAK"
+                                        ? "bg-amber-100 text-amber-600"
+                                        : "bg-emerald-100 text-emerald-600"
+                                  }`}
+                                >
+                                  {row.status.replace("_", " ")}
+                                </span>
+                                {row.status !== "CLOCKED_OUT" && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!session?.access_token) return;
+                                      if (
+                                        confirm(
+                                          `Force close shift for ${row.employee.name}?`,
+                                        )
+                                      ) {
+                                        try {
+                                          await apiFetch(
+                                            `/api/admin/sessions/${row.id}`,
+                                            {
+                                              method: "PATCH",
+                                              accessToken: session.access_token,
+                                              body: JSON.stringify({
+                                                status: "CLOCKED_OUT",
+                                                clockOutAt:
+                                                  new Date().toISOString(),
+                                              }),
+                                            },
+                                          );
+                                          window.location.reload();
+                                        } catch (err) {
+                                          alert("Failed to close shift");
+                                        }
+                                      }
+                                    }}
+                                    className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-700 underline"
+                                  >
+                                    Force Close
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-5 px-6">
+                              <p className="text-sm font-black text-slate-900">
+                                {new Date(row.clockInAt).toLocaleDateString(
+                                  [],
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs font-bold text-slate-400">
+                                  {new Date(row.clockInAt).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </p>
+                                {row.lateMinutes ? (
+                                  <span className="text-[8px] font-black px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded uppercase">
+                                    Late {row.lateMinutes}m
+                                  </span>
+                                ) : null}
+                              </div>
+                            </td>
+                            <td className="py-5 px-6">
+                              {row.clockOutAt ? (
+                                <>
+                                  <p className="text-sm font-black text-slate-900">
+                                    {new Date(
+                                      row.clockOutAt,
+                                    ).toLocaleDateString([], {
+                                      month: "short",
+                                      day: "numeric",
+                                    })}
+                                  </p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-bold text-slate-400">
+                                      {new Date(
+                                        row.clockOutAt,
+                                      ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </p>
+                                    {row.earlyLeaveMinutes ? (
+                                      <span className="text-[8px] font-black px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded uppercase">
+                                        Early {row.earlyLeaveMinutes}m
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">
+                                  Currently Active
+                                </p>
+                              )}
+                            </td>
+                            <td className="py-5 px-6 text-right">
+                              <div className="flex flex-col items-end">
+                                <p className="text-xl font-black text-slate-900 tracking-tighter">
+                                  {durationHrs.toFixed(1)}h
+                                </p>
+                                <div className="flex gap-2 justify-end">
+                                  {row.overtimeMinutes ? (
+                                    <span className="text-[8px] font-black text-emerald-600 uppercase">
+                                      +{row.overtimeMinutes}m OT
+                                    </span>
+                                  ) : null}
+                                  {row.breakMinutes > 0 && (
+                                    <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest">
+                                      -{row.breakMinutes}m break
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

@@ -14,7 +14,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     enforceRateLimit("admin-employee-face-enroll", `${auth.ip}:${auth.dbUser.id}`, RATE_LIMIT_CONFIG.enroll.limit, RATE_LIMIT_CONFIG.enroll.windowMs);
 
     const { id } = await params;
-    const target = await prisma.employee.findUnique({ where: { id } });
+    const target = await prisma.employee.findFirst({
+      where: { id, organizationId: auth.organizationId },
+    });
 
     if (!target) {
       throw new ApiError(404, "Target employee not found.");
@@ -23,10 +25,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await req.json();
     const parsed = enrollFaceSchema.parse(body);
 
+    const embedding = parsed.embedding as number[];
+    const embeddingStr = `[${embedding.join(",")}]`;
+
+    // 1. Update primary model (for legacy compatibility/quick checks)
     const updated = await prisma.employee.update({
       where: { id },
       data: {
-        faceEmbedding: parsed.embedding,
+        faceEmbedding: parsed.embedding as any,
         faceEnrolledAt: new Date(),
       },
       select: {
@@ -34,11 +40,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       },
     });
 
+    // 2. Insert into vector table (scalable 1:N)
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "EmployeeFaceEmbedding" ("id", "employeeId", "organizationId", "embedding", "createdAt") 
+       VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3::vector, now())`,
+      id, 
+      auth.organizationId, 
+      embeddingStr
+    );
+
     return NextResponse.json({
       success: true,
       enrolledAt: updated.faceEnrolledAt?.toISOString() ?? null,
     });
   } catch (error) {
+    console.error("Enrollment error:", error);
     return toErrorResponse(error, "Failed to enroll employee face.");
   }
 }
@@ -55,7 +71,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
 
     const { id } = await params;
-    const target = await prisma.employee.findUnique({ where: { id } });
+    const target = await prisma.employee.findFirst({
+      where: { id, organizationId: auth.organizationId },
+    });
 
     if (!target) {
       throw new ApiError(404, "Target employee not found.");

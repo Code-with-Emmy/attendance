@@ -13,7 +13,7 @@ import {
   runLivenessChallenge,
   type LivenessChallenge,
 } from "@/lib/liveness";
-import { BRAND_COMPANY } from "@/lib/branding";
+
 import { BrandLoader } from "@/components/brand-loader";
 
 type Employee = {

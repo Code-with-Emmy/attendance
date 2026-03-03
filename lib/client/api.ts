@@ -2,6 +2,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type FetchOptions = RequestInit & {
   accessToken?: string;
+  kioskToken?: string;
   requireAuth?: boolean;
 };
 
@@ -27,6 +28,11 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  const kioskToken = options.kioskToken || (typeof window !== "undefined" ? localStorage.getItem("kiosk_token") : null);
+  if (kioskToken) {
+    headers.set("x-kiosk-token", kioskToken);
+  }
+
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
@@ -49,7 +55,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
         ? data.error
         : null) || `Request failed with status ${response.status}`;
     const error = new Error(message);
-    (error as any).status = response.status;
+    (error as { status?: number }).status = response.status;
     throw error;
   }
 

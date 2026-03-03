@@ -17,13 +17,14 @@ function csvCell(value: string | number | null | undefined) {
 function buildHoursByEmployee(
   rows: Array<{
     employee: { id: string };
-    type: "CLOCK_IN" | "CLOCK_OUT";
+    type: string;
     timestamp: Date;
   }>,
 ) {
   const grouped = new Map<string, Array<{ type: "CLOCK_IN" | "CLOCK_OUT"; timestamp: Date }>>();
 
   for (const row of rows) {
+    if (row.type !== "CLOCK_IN" && row.type !== "CLOCK_OUT") continue;
     const existing = grouped.get(row.employee.id);
     if (existing) {
       existing.push({ type: row.type, timestamp: row.timestamp });
@@ -78,15 +79,17 @@ export async function GET(req: Request) {
       end: searchParams.get("end") ?? undefined,
     });
 
-    const where =
-      query.start || query.end
+    const where = {
+      organizationId: auth.organizationId,
+      ...(query.start || query.end
         ? {
             timestamp: {
               ...(query.start ? { gte: new Date(query.start) } : {}),
               ...(query.end ? { lt: new Date(query.end) } : {}),
             },
           }
-        : undefined;
+        : {}),
+    };
 
     const rows = await prisma.attendance.findMany({
       where,

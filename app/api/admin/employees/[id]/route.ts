@@ -18,7 +18,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     );
 
     const { id } = await params;
-    const target = await prisma.employee.findUnique({ where: { id } });
+    const target = await prisma.employee.findFirst({
+      where: { id, organizationId: auth.organizationId },
+    });
 
     if (!target) {
       throw new ApiError(404, "Target employee not found.");
@@ -85,6 +87,15 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
 
     const { id } = await params;
+    
+    // Check ownership before delete
+    const target = await prisma.employee.findFirst({
+      where: { id, organizationId: auth.organizationId },
+    });
+    if (!target) {
+      throw new ApiError(404, "Target employee not found.");
+    }
+
     await prisma.employee.delete({ where: { id } });
 
     return NextResponse.json({ success: true });

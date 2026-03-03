@@ -5,6 +5,7 @@ import { requireAdmin, requireAuth } from "@/lib/server/auth";
 import { ApiError, toErrorResponse } from "@/lib/server/errors";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { createEmployeeSchema } from "@/lib/validation";
+import { enforceEmployeeLimit } from "@/lib/server/billing";
 
 export async function GET(req: Request) {
   try {
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
     );
 
     const employees = await prisma.employee.findMany({
+      where: { organizationId: auth.organizationId },
       orderBy: [{ createdAt: "desc" }],
       select: {
         id: true,
@@ -56,6 +58,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = createEmployeeSchema.parse(body);
 
+    await enforceEmployeeLimit(auth.organizationId);
+
     if (parsed.email) {
       const existingByEmail = await prisma.employee.findUnique({
         where: { email: parsed.email },
@@ -68,6 +72,7 @@ export async function POST(req: Request) {
 
     const created = await prisma.employee.create({
       data: {
+        organizationId: auth.organizationId,
         name: parsed.name,
         email: parsed.email ?? null,
         phone: parsed.phone ?? null,

@@ -17,9 +17,10 @@ const lato = Lato({
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
         className={`${lato.variable} font-sans antialiased text-responsive`}
+        suppressHydrationWarning
       >
         {children}
       </body>

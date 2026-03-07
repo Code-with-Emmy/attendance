@@ -24,6 +24,7 @@ type Employee = {
   department: string | null;
   title: string | null;
   bio: string | null;
+  imageUrl: string | null;
   faceEnrolledAt: string | null;
 };
 
@@ -58,6 +59,7 @@ export default function AdminEnrollPage() {
   const [profileDepartment, setProfileDepartment] = useState("");
   const [profileTitle, setProfileTitle] = useState("");
   const [profileBio, setProfileBio] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState("");
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -121,6 +123,7 @@ export default function AdminEnrollPage() {
       setProfileDepartment("");
       setProfileTitle("");
       setProfileBio("");
+      setProfileImageUrl("");
       return;
     }
     setProfileName(selectedEmployee.name || "");
@@ -128,6 +131,7 @@ export default function AdminEnrollPage() {
     setProfileDepartment(selectedEmployee.department || "");
     setProfileTitle(selectedEmployee.title || "");
     setProfileBio(selectedEmployee.bio || "");
+    setProfileImageUrl(selectedEmployee.imageUrl || "");
   }, [selectedEmployee]);
 
   async function createEmployee(event: React.FormEvent<HTMLFormElement>) {
@@ -187,6 +191,7 @@ export default function AdminEnrollPage() {
             department: profileDepartment,
             title: profileTitle,
             bio: profileBio,
+            imageUrl: profileImageUrl || null,
           }),
         },
       );
@@ -304,7 +309,7 @@ export default function AdminEnrollPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 font-(family-name:--font-lato) antialiased text-slate-900 px-6 py-10 lg:px-16 overflow-y-auto">
+    <main className="admin-shell admin-theme min-h-screen font-(family-name:--font-lato) antialiased text-slate-100 px-6 py-10 lg:px-16 overflow-y-auto">
       <div className="mx-auto max-w-7xl">
         <AppHeader
           role={user.role}
@@ -313,12 +318,14 @@ export default function AdminEnrollPage() {
           onSignOut={signOut}
         />
 
-        {/* Plain Header */}
-        <header className="mb-12 border-l-4 border-blue-600 pl-6 space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-slate-900">
+        <header className="site-card mb-12 rounded-4xl px-8 py-8">
+          <p className="text-[0.72rem] font-black uppercase tracking-[0.34em] text-blue-300">
+            Enrollment Control
+          </p>
+          <h1 className="mt-4 text-4xl font-black tracking-tighter leading-none text-slate-900 md:text-5xl">
             Staff List.
           </h1>
-          <p className="text-md font-bold text-slate-500 max-w-xl">
+          <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-slate-400">
             Register new operators and capture high-resolution face scans for
             verification.
           </p>
@@ -328,7 +335,7 @@ export default function AdminEnrollPage() {
           {/* Main Content Area */}
           <div className="lg:col-span-12 space-y-10">
             {/* List Selection Section */}
-            <section className="bg-white border-2 border-slate-200 p-8 rounded-xl shadow-sm">
+            <section className="site-card rounded-[1.8rem] p-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">
                   1. Select Person
@@ -336,7 +343,7 @@ export default function AdminEnrollPage() {
                 <button
                   onClick={() => void loadEmployees()}
                   disabled={employeesLoading}
-                  className="h-10 px-4 rounded-md bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all flex items-center gap-2"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all hover:border-blue-400/24 hover:bg-white/8"
                 >
                   <svg
                     className={`h-4 w-4 ${employeesLoading ? "animate-spin text-blue-600" : "opacity-30"}`}
@@ -359,7 +366,7 @@ export default function AdminEnrollPage() {
                 <select
                   value={selectedEmployeeId}
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                  className="w-full h-12 bg-slate-50 border-2 border-slate-200 px-5 rounded-lg text-lg font-bold text-slate-900 outline-none focus:border-blue-600 appearance-none cursor-pointer"
+                  className="w-full h-12 appearance-none rounded-2xl border border-white/10 bg-white/5 px-5 text-lg font-bold text-white outline-none transition-all focus:border-blue-500 cursor-pointer"
                 >
                   {!employees.length && (
                     <option value="">Searching for results...</option>
@@ -391,12 +398,71 @@ export default function AdminEnrollPage() {
             <div className="grid gap-10 lg:grid-cols-2">
               {/* Left: Edit Form */}
               {selectedEmployee && (
-                <section className="bg-white border-2 border-slate-200 p-8 rounded-xl shadow-sm">
+                <section className="site-card rounded-[1.8rem] p-8">
                   <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-slate-900">
                     2. Profile Settings
                   </h3>
 
                   <form onSubmit={saveProfile} className="space-y-6">
+                    <div className="flex items-center gap-6">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/5 group">
+                        {profileImageUrl ? (
+                          <img
+                            src={profileImageUrl}
+                            alt="Profile"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-white/5 text-slate-400">
+                            <svg
+                              className="h-8 w-8"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                        <label className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-slate-950/60 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                          <span className="text-[10px] font-black uppercase tracking-widest">
+                            Upload
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setProfileImageUrl(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                          Profile Image URL
+                        </label>
+                        <input
+                          value={profileImageUrl}
+                          onChange={(e) => setProfileImageUrl(e.target.value)}
+                          placeholder="Or paste image URL here..."
+                          className="w-full h-10 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-bold text-white transition-all outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
                     <div className="grid gap-6 md:grid-cols-2">
                       {[
                         {
@@ -427,7 +493,7 @@ export default function AdminEnrollPage() {
                           <input
                             value={inp.val}
                             onChange={(e) => inp.set(e.target.value)}
-                            className="w-full h-12 bg-slate-50 border border-slate-200 rounded-lg px-4 text-md font-bold text-slate-900 transition-all outline-none focus:border-blue-600"
+                            className="w-full h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-md font-bold text-white transition-all outline-none focus:border-blue-500"
                           />
                         </label>
                       ))}
@@ -440,22 +506,22 @@ export default function AdminEnrollPage() {
                       <textarea
                         value={profileBio}
                         onChange={(e) => setProfileBio(e.target.value)}
-                        className="w-full h-24 bg-slate-50 border border-slate-200 rounded-lg p-4 text-md font-bold text-slate-900 transition-all outline-none focus:border-blue-600"
+                        className="w-full h-24 rounded-2xl border border-white/10 bg-white/5 p-4 text-md font-bold text-white transition-all outline-none focus:border-blue-500"
                       />
                     </label>
 
-                    <div className="flex gap-4 pt-6 border-t border-slate-100">
+                    <div className="surface-divider flex gap-4 pt-6">
                       <button
                         type="submit"
                         disabled={savingProfile}
-                        className="h-12 flex-2 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-slate-800 active:scale-95 transition-all"
+                        className="h-12 flex-2 rounded-full border border-blue-400/24 bg-[linear-gradient(135deg,#2563EB,#3B82F6_52%,#60A5FA)] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_18px_40px_rgba(37,99,235,0.28)] transition-all hover:brightness-110 active:scale-95"
                       >
                         {savingProfile ? "Writing..." : "Commit Changes"}
                       </button>
                       <button
                         type="button"
                         onClick={() => void deleteEmployee()}
-                        className="h-12 flex-1 rounded-lg border-2 border-rose-100 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all"
+                        className="h-12 flex-1 rounded-full border border-red-400/18 bg-red-500/10 text-red-200 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-red-500/16"
                       >
                         Remove
                       </button>
@@ -465,12 +531,12 @@ export default function AdminEnrollPage() {
               )}
 
               {/* Right: Camera Area */}
-              <section className="bg-white border-2 border-slate-200 p-8 rounded-xl shadow-sm">
+              <section className="site-card rounded-[1.8rem] p-8">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-xl font-black uppercase tracking-tight text-slate-900">
                     3. Identity Capture
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
                     <span
                       className={`h-2.5 w-2.5 rounded-full ${selectedEmployee?.faceEnrolledAt ? "bg-emerald-500" : "bg-amber-500"}`}
                     />
@@ -480,7 +546,7 @@ export default function AdminEnrollPage() {
                   </div>
                 </div>
 
-                <div className="relative aspect-square xl:aspect-video bg-black rounded-xl overflow-hidden mb-8 border-2 border-slate-200">
+                <div className="relative mb-8 aspect-square overflow-hidden rounded-[1.6rem] border border-white/10 bg-black xl:aspect-video">
                   <CameraPanel
                     videoRef={videoRef}
                     ready={ready}
@@ -488,10 +554,10 @@ export default function AdminEnrollPage() {
                   />
 
                   {actionLoading && (
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-md flex items-center justify-center z-30">
-                      <div className="w-full max-w-[280px] bg-white border-2 border-slate-200 rounded-xl p-8 text-center shadow-2xl">
-                        <div className="h-10 w-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin mx-auto mb-6" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 leading-none">
+                    <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/40 backdrop-blur-md">
+                      <div className="w-full max-w-[280px] rounded-[1.6rem] border border-white/10 bg-slate-950/78 p-8 text-center shadow-[0_24px_56px_rgba(2,6,23,0.48)]">
+                        <div className="mx-auto mb-6 h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-blue-300" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white leading-none">
                           {message}
                         </p>
                       </div>
@@ -526,17 +592,17 @@ export default function AdminEnrollPage() {
                           key={c}
                           type="button"
                           onClick={() => setChallenge(c)}
-                          className={`h-10 rounded-lg border-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                          className={`h-10 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
                             challenge === c
-                              ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200"
-                              : "bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600"
+                              ? "border-blue-400/24 bg-blue-500/14 text-white shadow-[0_18px_40px_rgba(37,99,235,0.2)]"
+                              : "border-white/10 bg-white/5 text-slate-300 hover:border-blue-400/18 hover:bg-white/8 hover:text-white"
                           }`}
                         >
                           {c.replace("_", " ")}
                         </button>
                       ))}
                     </div>
-                    <p className="mt-3 text-[10px] font-bold text-slate-500 italic">
+                    <p className="mt-3 text-[10px] font-bold text-slate-400 italic">
                       Action: {challengeLabel(challenge)}
                     </p>
                   </div>
@@ -549,7 +615,7 @@ export default function AdminEnrollPage() {
                       !modelsReady ||
                       actionLoading
                     }
-                    className="h-12 w-full rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-30"
+                    className="h-12 w-full rounded-full border border-blue-400/24 bg-[linear-gradient(135deg,#2563EB,#3B82F6_52%,#60A5FA)] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_18px_40px_rgba(37,99,235,0.28)] transition-all hover:brightness-110 active:scale-95 disabled:opacity-30"
                   >
                     {actionLoading ? "Processing..." : "Capture Initial Scan"}
                   </button>
@@ -557,14 +623,14 @@ export default function AdminEnrollPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={restart}
-                      className="h-10 rounded-md bg-white border border-slate-300 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                      className="h-10 rounded-full border border-white/10 bg-white/5 text-[9px] font-black text-slate-300 uppercase tracking-widest transition-all hover:border-blue-400/18 hover:bg-white/8"
                     >
                       Reset Camera
                     </button>
                     <button
                       onClick={() => void clearSelectedEmployeeFace()}
                       disabled={!selectedEmployee?.faceEnrolledAt}
-                      className="h-10 rounded-md border border-rose-100 text-[9px] font-black text-rose-300 uppercase tracking-widest hover:bg-rose-50 transition-all disabled:opacity-0"
+                      className="h-10 rounded-full border border-red-400/18 bg-red-500/10 text-[9px] font-black text-red-200 uppercase tracking-widest transition-all hover:bg-red-500/16 disabled:opacity-0"
                     >
                       Wipe Biometrics
                     </button>
@@ -574,10 +640,23 @@ export default function AdminEnrollPage() {
             </div>
 
             {/* Bottom: Quick Add */}
-            <section className="bg-slate-100/50 border-2 border-dashed border-slate-300 p-8 rounded-xl">
-              <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-8">
-                Direct Registration
-              </h4>
+            <section className="site-card rounded-[1.8rem] border border-white/10 p-8">
+              <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-[0.24em] text-blue-300">
+                    Direct Registration
+                  </h4>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
+                    Add a staff record immediately, then continue into biometric
+                    enrollment and profile completion from the same control
+                    surface.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.22em] text-slate-300">
+                  Fast intake
+                </span>
+              </div>
+              <h4 className="sr-only">Direct Registration</h4>
               <form
                 onSubmit={createEmployee}
                 className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-end"
@@ -598,7 +677,7 @@ export default function AdminEnrollPage() {
                     <input
                       value={inp.val}
                       onChange={(e) => inp.set(e.target.value)}
-                      className="w-full h-12 bg-white border border-slate-300 rounded-lg px-4 text-md font-bold text-slate-900 transition-all outline-none focus:border-blue-600"
+                      className="w-full h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-md font-bold text-white transition-all outline-none focus:border-blue-500"
                       required={inp.label === "Legal Name"}
                     />
                   </label>
@@ -606,7 +685,7 @@ export default function AdminEnrollPage() {
                 <button
                   type="submit"
                   disabled={creatingEmployee}
-                  className="h-12 bg-white border-2 border-slate-300 text-slate-900 rounded-lg text-[10px] font-black uppercase tracking-widest hover:border-slate-900 transition-all active:scale-95"
+                  className="h-12 rounded-full border border-blue-400/24 bg-[linear-gradient(135deg,#2563EB,#3B82F6_52%,#60A5FA)] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_18px_40px_rgba(37,99,235,0.28)] transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
                 >
                   {creatingEmployee ? "Registering..." : "Assign to System"}
                 </button>
@@ -620,10 +699,10 @@ export default function AdminEnrollPage() {
       {(actionError || message) && !actionLoading && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 duration-300">
           <div
-            className={`flex items-center gap-4 px-8 py-4 rounded-xl border-2 shadow-2xl ${
+            className={`flex items-center gap-4 rounded-3xl border px-8 py-4 shadow-[0_24px_56px_rgba(2,6,23,0.45)] ${
               actionError
-                ? "bg-rose-600 text-white border-rose-400"
-                : "bg-emerald-600 text-white border-emerald-400"
+                ? "border-red-400/24 bg-red-500/14 text-white"
+                : "border-emerald-400/24 bg-emerald-500/14 text-white"
             }`}
           >
             <span className="text-2xl font-black">

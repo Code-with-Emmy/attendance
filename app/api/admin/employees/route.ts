@@ -29,6 +29,7 @@ export async function GET(req: Request) {
         department: true,
         title: true,
         bio: true,
+        imageUrl: true,
         faceEnrolledAt: true,
       },
     });
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         department: true,
         title: true,
         bio: true,
+        imageUrl: true,
         faceEnrolledAt: true,
       },
     });

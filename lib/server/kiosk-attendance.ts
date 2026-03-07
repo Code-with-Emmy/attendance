@@ -6,6 +6,7 @@ type KioskClockCandidate = {
   id: string;
   name: string;
   email: string | null;
+  imageUrl: string | null;
   organizationId: string;
   faceEmbedding: unknown;
 };
@@ -19,6 +20,7 @@ type MatchedEmployee = {
   id: string;
   name: string;
   email: string | null;
+  imageUrl: string | null;
   organizationId: string;
 };
 
@@ -120,6 +122,7 @@ function findBestMatch(
           id: candidate.id,
           name: candidate.name,
           email: candidate.email,
+          imageUrl: candidate.imageUrl,
           organizationId: candidate.organizationId,
         },
         distance,
@@ -283,6 +286,7 @@ type KioskHistoryRow = {
   timestamp: Date;
   employee: {
     name: string;
+    imageUrl: string | null;
   };
 };
 

@@ -136,7 +136,7 @@ export default function PayrollPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 font-(family-name:--font-lato) antialiased text-slate-900 px-6 py-10 lg:px-16 overflow-y-auto w-full">
+    <main className="admin-shell admin-theme min-h-screen font-(family-name:--font-lato) antialiased text-slate-100 px-6 py-10 lg:px-16 overflow-y-auto w-full">
       <div className="mx-auto max-w-7xl">
         <AppHeader
           role={user.role}

@@ -1,24 +1,44 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Attendance System",
-  description: "Modern face-recognition attendance platform for kiosk clock in and admin operations.",
-};
-
-import { Lato } from "next/font/google";
-
-const lato = Lato({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"],
-  variable: "--font-lato",
+  variable: "--font-body",
+  display: "swap",
 });
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#020617",
+};
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://attendancekiosk.app"),
+  title: {
+    default: "AttendanceKiosk",
+    template: "%s | AttendanceKiosk",
+  },
+  description:
+    "Face-verified attendance for modern workplaces with biometric kiosks, liveness verification, and payroll-ready reporting.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${lato.variable} font-sans antialiased text-responsive`}
+        className={`${inter.variable} ${sora.variable} text-responsive safe-area-top safe-area-bottom safe-area-x font-body antialiased`}
         suppressHydrationWarning
       >
         {children}

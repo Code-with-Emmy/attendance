@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { SyncDB, QueuedEvent } from "../sync-manager";
+import { SyncDB } from "../sync-manager";
 
 export function useAttendanceSync() {
   const [unsyncedCount, setUnsyncedCount] = useState(0);
@@ -33,9 +33,14 @@ export function useAttendanceSync() {
         if (event.retryCount > 10) continue;
 
         try {
+          const kioskToken =
+            typeof window !== "undefined" ? window.localStorage.getItem("kiosk_token") : null;
           const res = await fetch("/api/kiosk/clock", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(kioskToken ? { "x-kiosk-token": kioskToken } : {}),
+            },
             body: JSON.stringify({
               type: event.type,
               embedding: event.embedding,

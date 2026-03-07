@@ -48,6 +48,7 @@ export async function GET(req: Request) {
         employee: {
           select: {
             name: true,
+            imageUrl: true,
           },
         },
       },

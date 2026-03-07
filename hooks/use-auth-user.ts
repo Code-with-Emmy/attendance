@@ -14,13 +14,13 @@ export type AppUser = {
   department: string | null;
   title: string | null;
   bio: string | null;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "MASTER_ADMIN" | "ORG_ADMIN" | "HR" | "MANAGER" | "VIEWER";
   faceEnrolledAt: string | null;
   organizationId: string;
   organizationName: string;
 };
 
-export function useAuthUser(options?: { requireAdmin?: boolean }) {
+export function useAuthUser(options?: { requireAdmin?: boolean; requireMasterAdmin?: boolean }) {
   const router = useRouter();
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
@@ -117,14 +117,19 @@ export function useAuthUser(options?: { requireAdmin?: boolean }) {
   }, [router, session, sessionReady]);
 
   useEffect(() => {
-    if (!options?.requireAdmin || !user) {
+    if (!user) {
+      return;
+    }
+    
+    if (options?.requireMasterAdmin && user.role !== "MASTER_ADMIN") {
+      router.replace("/login");
       return;
     }
 
-    if (user.role !== "ADMIN") {
+    if (options?.requireAdmin && user.role !== "ADMIN" && user.role !== "MASTER_ADMIN" && user.role !== "ORG_ADMIN") {
       router.replace("/kiosk");
     }
-  }, [options?.requireAdmin, router, user]);
+  }, [options?.requireAdmin, options?.requireMasterAdmin, router, user]);
 
   const signOut = useCallback(async () => {
     if (supabase) {

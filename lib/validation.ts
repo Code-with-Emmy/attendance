@@ -66,6 +66,7 @@ export const updateProfileSchema = z.object({
   department: optionalTrimmedText(80),
   title: optionalTrimmedText(80),
   bio: optionalTrimmedText(500),
+  imageUrl: z.string().optional().nullable(),
 });
 
 export const createAdminUserSchema = z.object({
@@ -86,4 +87,96 @@ export const createEmployeeSchema = z.object({
   department: optionalTrimmedText(80).optional(),
   title: optionalTrimmedText(80).optional(),
   bio: optionalTrimmedText(500).optional(),
+});
+
+const publicEmail = z
+  .string()
+  .trim()
+  .email()
+  .max(255)
+  .transform((value) => value.toLowerCase());
+
+const requiredTrimmedText = (min: number, max: number) =>
+  z.string().trim().min(min).max(max);
+
+export const teamSizeSchema = z.enum([
+  "1-25",
+  "26-100",
+  "101-250",
+  "251-500",
+  "500+",
+]);
+
+export const billingPeriodSchema = z.enum(["monthly", "yearly"]);
+export const paymentProviderSchema = z.enum(["STRIPE", "FLUTTERWAVE"]);
+
+export const sitePlanSchema = z.enum([
+  "starter",
+  "growth",
+  "pro",
+  "enterprise",
+]);
+
+export const selfServePlanSchema = z.enum(["starter", "growth", "pro"]);
+
+export const demoRequestSchema = z.object({
+  fullName: requiredTrimmedText(2, 120),
+  company: requiredTrimmedText(2, 120),
+  email: publicEmail,
+  phone: requiredTrimmedText(7, 40),
+  teamSize: teamSizeSchema,
+  message: requiredTrimmedText(10, 2_000),
+});
+
+export const contactMessageSchema = z.object({
+  name: requiredTrimmedText(2, 120),
+  email: publicEmail,
+  company: requiredTrimmedText(2, 120),
+  subject: requiredTrimmedText(2, 160),
+  message: requiredTrimmedText(10, 2_000),
+});
+
+export const trialSignupSchema = z
+  .object({
+    businessEmail: publicEmail,
+    organizationName: requiredTrimmedText(2, 120),
+    teamSize: teamSizeSchema,
+    password: z.string().min(6).max(128),
+    confirmPassword: z.string().min(6).max(128),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export const forgotPasswordSchema = z.object({
+  email: publicEmail,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().trim().min(32).max(256),
+    password: z.string().min(8).max(128),
+    confirmPassword: z.string().min(8).max(128),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export const purchaseRequestSchema = z.object({
+  fullName: requiredTrimmedText(2, 120),
+  businessName: requiredTrimmedText(2, 120),
+  workEmail: publicEmail,
+  phone: requiredTrimmedText(7, 40),
+  companySize: teamSizeSchema,
+  employeeCount: z.coerce.number().int().min(1).max(100000),
+  deviceCount: z.coerce.number().int().min(1).max(10000),
+  planCode: selfServePlanSchema,
+  billingPeriod: billingPeriodSchema,
+});
+
+export const createCheckoutSessionSchema = z.object({
+  purchaseIntentId: z.string().uuid(),
+  provider: paymentProviderSchema.optional(),
 });

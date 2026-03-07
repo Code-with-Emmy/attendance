@@ -11,6 +11,11 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  MASTER_ADMIN
+  ORG_ADMIN
+  HR
+  MANAGER
+  VIEWER
 }
 
 enum AttendanceType {
@@ -26,10 +31,38 @@ enum SessionStatus {
   ON_BREAK
 }
 
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum PurchaseIntentStatus {
+  PENDING
+  CHECKOUT_CREATED
+  PAID
+  FAILED
+  CANCELED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum PaymentProvider {
+  STRIPE
+  FLUTTERWAVE
+}
+
 model Organization {
   id          String       @id @default(uuid()) @db.Uuid
   name        String
   slug        String       @unique
+  email       String?
+  phone       String?
   users        User[]
   employees    Employee[]
   attendances  Attendance[]
@@ -43,35 +76,53 @@ model Organization {
   payPeriods       PayPeriod[]
   paySummaries     EmployeePaySummary[]
   subscription     OrganizationSubscription?
+  trialSignups     TrialSignup[]
+  purchaseIntents  PurchaseIntent[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
+
+  @@index([email])
 }
 
 model SubscriptionPlan {
   id              String   @id @default(uuid()) @db.Uuid
+  code            String   @unique
   name            String
-  code            String   @unique // e.g. "free", "growth", "pro"
+  description     String   @default("")
+  monthlyPrice    Int      @default(0)
+  yearlyPrice     Int      @default(0)
+  currency        String   @default("USD")
   maxEmployees    Int      @default(10)
   maxDevices      Int      @default(1)
-  priceMonthly    Int      @default(0) // in cents
   features        Json?
+  isActive        Boolean  @default(true)
   subscriptions   OrganizationSubscription[]
+  purchaseIntents PurchaseIntent[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([isActive, code])
 }
 
 model OrganizationSubscription {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @unique @db.Uuid
-  planId          String   @db.Uuid
-  status          String   @default("active") // "active", "past_due", "canceled"
+  id                   String             @id @default(uuid()) @db.Uuid
+  organizationId       String             @unique @db.Uuid
+  subscriptionPlanId   String             @map("planId") @db.Uuid
+  status               SubscriptionStatus @default(INCOMPLETE)
+  billingCycle         BillingCycle       @default(MONTHLY)
+  provider             PaymentProvider?
+  providerCustomerId   String?
+  providerSubscriptionId String?
+  currentPeriodStart   DateTime?
   currentPeriodEnd DateTime?
-  externalId      String?  // Stripe/Flutterwave reference
   
   organization    Organization     @relation(fields: [organizationId], references: [id])
-  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  subscriptionPlan SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([status, currentPeriodEnd])
+  @@index([provider, providerSubscriptionId])
 }
 
 model PayPeriod {
@@ -138,8 +189,140 @@ model User {
   faceEnrolledAt DateTime?
   organizationId String?       @db.Uuid
   organization   Organization? @relation(fields: [organizationId], references: [id])
+  trialSignups   TrialSignup[]
+  passwordResetTokens PasswordResetToken[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+}
+
+model EmailLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  recipient String
+  subject   String
+  type      String
+  status    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([recipient, createdAt])
+  @@index([status, createdAt])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String
+  userId     String?   @db.Uuid
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+model DemoRequest {
+  id          String   @id @default(uuid()) @db.Uuid
+  fullName    String
+  company     String
+  email       String
+  phone       String
+  teamSize    String
+  message     String
+  status      String   @default("new")
+  submittedIp String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model ContactMessage {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  email       String
+  company     String
+  subject     String
+  message     String
+  status      String   @default("new")
+  submittedIp String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model TrialSignup {
+  id               String        @id @default(uuid()) @db.Uuid
+  businessEmail    String
+  organizationName String
+  teamSize         String
+  status           String        @default("provisioned")
+  planCode         String
+  submittedIp      String?
+  userAgent        String?
+  organizationId   String?       @db.Uuid
+  userId           String?       @db.Uuid
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user             User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([businessEmail])
+  @@index([status, createdAt])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model PurchaseIntent {
+  id               String               @id @default(uuid()) @db.Uuid
+  organizationId   String               @db.Uuid
+  subscriptionPlanId String             @db.Uuid
+  organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionPlan SubscriptionPlan     @relation(fields: [subscriptionPlanId], references: [id], onDelete: Restrict)
+  billingCycle     BillingCycle
+  fullName      String
+  businessName  String
+  workEmail     String
+  phone         String
+  companySize   String
+  employeeCount  Int
+  deviceCount    Int
+  status         PurchaseIntentStatus   @default(PENDING)
+  paymentProvider PaymentProvider?
+  providerReference String?
+  submittedIp   String?
+  userAgent     String?
+  paymentEvents  PaymentEvent[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@index([subscriptionPlanId, createdAt])
+  @@index([status, createdAt])
+  @@index([workEmail])
+  @@index([paymentProvider, providerReference])
+}
+
+model PaymentEvent {
+  id               String          @id @default(uuid()) @db.Uuid
+  purchaseIntentId String          @db.Uuid
+  purchaseIntent   PurchaseIntent  @relation(fields: [purchaseIntentId], references: [id], onDelete: Cascade)
+  provider         PaymentProvider
+  eventType        String
+  providerEventId  String
+  payload          Json
+  createdAt        DateTime        @default(now())
+
+  @@unique([provider, providerEventId])
+  @@index([purchaseIntentId, createdAt])
 }
 
 model Employee {
@@ -150,6 +333,7 @@ model Employee {
   department     String?
   title          String?
   bio            String?
+  imageUrl       String?
   faceEmbedding  Json?
   faceEnrolledAt DateTime?
   organizationId String       @db.Uuid
@@ -291,3 +475,19 @@ model AttendanceViolation {
   @@index([timestamp])
 }
 
+model SystemAdminWhitelist {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model PlatformSecret {
+  key         String   @id
+  value       String   // Should be encrypted in production
+  description String?
+  updatedAt   DateTime @updatedAt
+}

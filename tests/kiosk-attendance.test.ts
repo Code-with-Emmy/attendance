@@ -21,6 +21,7 @@ test("unknown face is blocked", () => {
         name: "Ada",
         email: "ada@example.com",
         organizationId: "test-org",
+        imageUrl: null,
         faceEmbedding: embedding(0),
       },
     ],
@@ -44,6 +45,7 @@ test("duplicate clock-in is prevented", () => {
         name: "Ada",
         email: "ada@example.com",
         organizationId: "test-org",
+        imageUrl: null,
         faceEmbedding: embedding(0),
       },
     ],
@@ -71,6 +73,7 @@ test("clock-out before clock-in is prevented", () => {
         name: "Ada",
         email: "ada@example.com",
         organizationId: "test-org",
+        imageUrl: null,
         faceEmbedding: embedding(0),
       },
     ],
@@ -93,6 +96,7 @@ test("recent activity feed rows are serialized for the kiosk", () => {
       timestamp: new Date("2026-03-02T08:15:00.000Z"),
       employee: {
         name: "Ada",
+        imageUrl: null,
       },
     },
     {
@@ -101,6 +105,7 @@ test("recent activity feed rows are serialized for the kiosk", () => {
       timestamp: new Date("2026-03-02T16:45:00.000Z"),
       employee: {
         name: "Ada",
+        imageUrl: null,
       },
     },
   ];
@@ -112,6 +117,7 @@ test("recent activity feed rows are serialized for the kiosk", () => {
       timestamp: "2026-03-02T08:15:00.000Z",
       employee: {
         name: "Ada",
+        imageUrl: null,
       },
     },
     {
@@ -120,6 +126,7 @@ test("recent activity feed rows are serialized for the kiosk", () => {
       timestamp: "2026-03-02T16:45:00.000Z",
       employee: {
         name: "Ada",
+        imageUrl: null,
       },
     },
   ]);

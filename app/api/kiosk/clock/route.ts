@@ -56,6 +56,7 @@ export async function POST(req: Request) {
             id: string;
             name: string;
             email: string | null;
+            imageUrl: string | null;
             organizationId: string;
           };
           matchDistance: number;
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
 
     // 1. Prefer pgvector matching when vector rows exist for this org.
     const matches = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT e."id", e."name", e."email", e."organizationId",
+      `SELECT e."id", e."name", e."email", e."imageUrl", e."organizationId",
               (v."embedding" <-> $1::vector) as "matchDistance"
        FROM "Employee" e
        JOIN "EmployeeFaceEmbedding" v ON e."id" = v."employeeId"
@@ -86,6 +87,7 @@ export async function POST(req: Request) {
             id: bestMatch.id,
             name: bestMatch.name,
             email: bestMatch.email,
+            imageUrl: bestMatch.imageUrl,
             organizationId: bestMatch.organizationId,
           },
           matchDistance: bestMatch.matchDistance,
@@ -106,6 +108,7 @@ export async function POST(req: Request) {
           id: true,
           name: true,
           email: true,
+          imageUrl: true,
           organizationId: true,
           faceEmbedding: true,
         },

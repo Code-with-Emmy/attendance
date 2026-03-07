@@ -11,4 +11,10 @@ export const RATE_LIMIT_CONFIG = {
   faceDelete: { limit: 10, windowMs: 60_000 },
   profile: { limit: 20, windowMs: 60_000 },
   history: { limit: 120, windowMs: 60_000 },
+  publicDemo: { limit: 8, windowMs: 60_000 },
+  publicContact: { limit: 8, windowMs: 60_000 },
+  publicTrial: { limit: 4, windowMs: 60_000 },
+  publicPurchase: { limit: 6, windowMs: 60_000 },
+  publicForgotPassword: { limit: 6, windowMs: 60_000 },
+  publicResetPassword: { limit: 10, windowMs: 60_000 },
 } as const;

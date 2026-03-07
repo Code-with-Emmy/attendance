@@ -35,6 +35,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       department?: string | null;
       title?: string | null;
       bio?: string | null;
+      imageUrl?: string | null;
     } = {};
 
     if (parsed.name !== undefined) {
@@ -47,6 +48,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (parsed.department !== undefined) updates.department = parsed.department;
     if (parsed.title !== undefined) updates.title = parsed.title;
     if (parsed.bio !== undefined) updates.bio = parsed.bio;
+    if (parsed.imageUrl !== undefined) updates.imageUrl = parsed.imageUrl;
 
     const updated = await prisma.employee.update({
       where: { id },
@@ -59,6 +61,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         department: true,
         title: true,
         bio: true,
+        imageUrl: true,
         faceEnrolledAt: true,
       },
     });

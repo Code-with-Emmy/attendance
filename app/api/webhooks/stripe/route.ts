@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.text();
-    const event = verifyStripeWebhookSignature(payload, signature);
+    const event = await verifyStripeWebhookSignature(payload, signature);
 
     switch (event.type) {
       case "checkout.session.completed": {

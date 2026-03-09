@@ -20,7 +20,7 @@ const ACTION_OPTIONS: Array<{
   {
     value: "AUTO",
     label: "Auto",
-    detail: "Default when nothing is selected",
+    detail: "Let the kiosk decide the action",
     Icon: Bot,
   },
   {
@@ -73,18 +73,18 @@ export function AttendanceActionSelector({
               Attendance Action
             </p>
             <h2 className="mt-1.5 text-xl font-black tracking-tight text-white sm:mt-2 sm:text-2xl">
-              Choose an action or leave it on auto
+              Stay on auto, choose manual when needed
             </h2>
             <p className="mt-1.5 text-xs font-medium text-slate-400 sm:mt-2 sm:text-sm">
-              If nothing is selected, the kiosk stays on automatic clock in and
-              clock out mode.
+              The kiosk starts on Auto. Choose any manual attendance action when
+              you want to override the automatic flow.
             </p>
           </div>
 
           <div className="inline-flex max-w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 text-[0.6rem] font-black uppercase tracking-[0.2em] text-slate-300 sm:px-3 sm:py-2 sm:text-[0.66rem] sm:tracking-[0.22em]">
             <Coffee className="h-3.5 w-3.5 text-blue-300" aria-hidden="true" />
             {selectedAction === "AUTO"
-              ? "Default Auto Mode"
+              ? "Auto Mode Selected"
               : "Manual Action Selected"}
           </div>
         </div>

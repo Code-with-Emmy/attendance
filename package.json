@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "node --experimental-strip-types prisma/seed.ts",
-    "models:download": "bash scripts/download-face-models.sh"
+    "models:download": "bash scripts/download-face-models.sh",
+    "kiosk:chrome": "bash scripts/start-kiosk-chrome.sh"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"

@@ -1,7 +1,15 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Eye, ListRestart, ScanFace, Smile, Undo2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  CircleDot,
+  Eye,
+  ListRestart,
+  ScanFace,
+  Smile,
+  Undo2,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   challengeButtonLabel,
@@ -20,8 +28,10 @@ type Props = {
 const CHALLENGE_ICONS: Record<LivenessChallenge, LucideIcon> = {
   BLINK: Eye,
   TURN_HEAD: Undo2,
-  OPEN_MOUTH: Smile,
+  OPEN_MOUTH: CircleDot,
   NOD_HEAD: ScanFace,
+  SMILE: Smile,
+  TILT_HEAD: ArrowUpDown,
 };
 
 export function LivenessChallengeSelector({
@@ -48,11 +58,11 @@ export function LivenessChallengeSelector({
               Liveness Fallback
             </p>
             <h2 className="mt-1.5 text-xl font-black tracking-tight text-white sm:mt-2 sm:text-2xl">
-              Keep auto or force a manual challenge
+              Stay on auto, choose manual when needed
             </h2>
             <p className="mt-1.5 text-xs font-medium text-slate-400 sm:mt-2 sm:text-sm">
-              Use Auto for random prompts, or pin a specific challenge if the
-              default method is not behaving correctly.
+              The kiosk starts on Auto. Choose a manual challenge only when you
+              want to override the random prompt.
             </p>
           </div>
 

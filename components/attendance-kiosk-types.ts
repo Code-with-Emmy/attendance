@@ -27,7 +27,15 @@ export type KioskUiStatus = {
 
 export type KioskDeviceHealth = "online" | "degraded" | "offline";
 
-export type KioskLivenessIcon = "blink" | "left" | "right" | "up" | "still" | "mouth";
+export type KioskLivenessIcon =
+  | "blink"
+  | "left"
+  | "right"
+  | "up"
+  | "still"
+  | "mouth"
+  | "smile"
+  | "tilt";
 
 export type KioskLivenessStep = {
   id: string;

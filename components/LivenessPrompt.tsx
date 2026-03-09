@@ -5,9 +5,11 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  ArrowUpDown,
   CircleDot,
   Eye,
   Loader2,
+  Smile,
 } from "lucide-react";
 import type { KioskLivenessStep } from "@/components/attendance-kiosk-types";
 
@@ -23,7 +25,9 @@ const STEP_ICONS = {
   right: ArrowRight,
   up: ArrowUp,
   mouth: CircleDot,
+  smile: Smile,
   still: CircleDot,
+  tilt: ArrowUpDown,
 } as const;
 
 export function LivenessPrompt({ active, stepIndex, steps }: Props) {
@@ -102,12 +106,12 @@ export function LivenessPrompt({ active, stepIndex, steps }: Props) {
                 }}
               >
                 <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-white sm:mt-2 sm:text-2xl">
-                  {active ? currentStep?.title : "Ready for passive liveness"}
+                  {active ? currentStep?.title : "Ready for liveness check"}
                 </h2>
                 <p className="mt-1.5 text-sm text-slate-400 sm:mt-2 sm:text-base">
                   {active
                     ? currentStep?.instruction
-                    : "Blink, turn, or hold still when prompted. The kiosk begins verification automatically once your face is framed."}
+                    : "Turn, nod, smile, tilt, or hold still when prompted. The kiosk begins verification automatically once your face is framed."}
                 </p>
               </motion.div>
             </AnimatePresence>

@@ -1,7 +1,7 @@
 import { AttendanceType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { RATE_LIMIT_CONFIG } from "@/lib/config";
+import { KIOSK_MATCH_THRESHOLD, RATE_LIMIT_CONFIG } from "@/lib/config";
 import { ApiError, toErrorResponse } from "@/lib/server/errors";
 import { matchKioskEmployeeFace } from "@/lib/server/kiosk-attendance";
 import {
@@ -26,6 +26,15 @@ function getClientIp(req: Request) {
   return req.headers.get("x-real-ip") || "unknown";
 }
 
+type KioskMatchRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  imageUrl: string | null;
+  organizationId: string;
+  matchDistance: number;
+};
+
 export async function POST(req: Request) {
   const requestId = getRequestId(req);
   const ip = getClientIp(req);
@@ -48,7 +57,7 @@ export async function POST(req: Request) {
 
     const parsed = verifyFaceSchema.parse({ embedding: body?.embedding });
     const embeddingStr = `[${parsed.embedding.join(",")}]`;
-    const matchThreshold = 0.45;
+    const matchThreshold = KIOSK_MATCH_THRESHOLD;
 
     let matchDecision:
       | {
@@ -66,7 +75,7 @@ export async function POST(req: Request) {
       | null = null;
 
     // 1. Prefer pgvector matching when vector rows exist for this org.
-    const matches = await prisma.$queryRawUnsafe<any[]>(
+    const matches = await prisma.$queryRawUnsafe<KioskMatchRow[]>(
       `SELECT e."id", e."name", e."email", e."imageUrl", e."organizationId",
               (v."embedding" <-> $1::vector) as "matchDistance"
        FROM "Employee" e

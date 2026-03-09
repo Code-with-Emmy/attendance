@@ -3,6 +3,15 @@ import { EMBEDDING_DIMENSION } from "@/lib/config";
 export type FaceApiModule = typeof import("face-api.js");
 
 type FaceDetectionWithLandmarks = {
+  detection: {
+    score: number;
+    box: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+  };
   landmarks: {
     getLeftEye: () => Array<{ x: number; y: number }>;
     getRightEye: () => Array<{ x: number; y: number }>;
@@ -29,8 +38,42 @@ async function getFaceApi() {
 function detectorOptions(faceApi: FaceApiModule) {
   return new faceApi.TinyFaceDetectorOptions({
     inputSize: 416,
-    scoreThreshold: 0.5,
+    scoreThreshold: 0.65,
   });
+}
+
+export function isFaceWellPositioned(
+  video: HTMLVideoElement,
+  detection: FaceDetectionWithLandmarks,
+) {
+  const videoWidth = video.videoWidth;
+  const videoHeight = video.videoHeight;
+
+  if (!videoWidth || !videoHeight) {
+    return true;
+  }
+
+  const {
+    score,
+    box: { x, y, width, height },
+  } = detection.detection;
+
+  const widthRatio = width / videoWidth;
+  const heightRatio = height / videoHeight;
+  const areaRatio = (width * height) / (videoWidth * videoHeight);
+  const centerX = (x + width / 2) / videoWidth;
+  const centerY = (y + height / 2) / videoHeight;
+
+  return (
+    score >= 0.72 &&
+    widthRatio >= 0.18 &&
+    heightRatio >= 0.28 &&
+    areaRatio >= 0.07 &&
+    centerX >= 0.24 &&
+    centerX <= 0.76 &&
+    centerY >= 0.2 &&
+    centerY <= 0.8
+  );
 }
 
 export async function loadFaceModels() {
@@ -73,6 +116,12 @@ export async function captureSingleFaceEmbedding(video: HTMLVideoElement): Promi
 
   if (detections.length > 1) {
     throw new Error("Multiple faces detected. Only one face is allowed.");
+  }
+
+  if (!isFaceWellPositioned(video, detections[0])) {
+    throw new Error(
+      "Move closer and center your face fully inside the frame before continuing.",
+    );
   }
 
   const descriptor = Array.from(detections[0].descriptor);

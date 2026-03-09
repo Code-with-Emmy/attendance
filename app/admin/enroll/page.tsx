@@ -68,7 +68,7 @@ export default function AdminEnrollPage() {
   const [creatingEmployee, setCreatingEmployee] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [challenge, setChallenge] = useState<LivenessChallenge>("BLINK");
+  const [challenge, setChallenge] = useState<LivenessChallenge>("TURN_HEAD");
   const [message, setMessage] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -582,10 +582,11 @@ export default function AdminEnrollPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {(
                         [
-                          "BLINK",
                           "TURN_HEAD",
                           "OPEN_MOUTH",
                           "NOD_HEAD",
+                          "SMILE",
+                          "TILT_HEAD",
                         ] as const
                       ).map((c) => (
                         <button

@@ -5,12 +5,13 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useId,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { motion } from "framer-motion";
-import { Activity, KeyRound, ShieldCheck } from "lucide-react";
+import { Activity, KeyRound, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { AttendanceActionSelector } from "@/components/AttendanceActionSelector";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BrandLogo } from "@/components/brand-logo";
@@ -33,12 +34,18 @@ import type {
 } from "@/components/attendance-kiosk-types";
 import { useCamera } from "@/hooks/use-camera";
 import { apiFetch } from "@/lib/client/api";
+import { shouldAutoClockOutFromWarning } from "@/lib/client/kiosk-auto-action";
 import { toUserFacingFaceError } from "@/lib/client/face-errors";
 import { useAttendanceSync } from "@/lib/client/hooks/use-attendance-sync";
 import { SyncDB } from "@/lib/client/sync-manager";
 import {
+  KIOSK_FACE_DETECTED_DELAY_MS,
+  KIOSK_RESULT_DISPLAY_MS,
+} from "@/lib/config";
+import {
   captureSingleFaceEmbedding,
   detectFacesWithLandmarks,
+  isFaceWellPositioned,
   loadFaceModels,
 } from "@/lib/face-client";
 import {
@@ -61,6 +68,9 @@ const WARMING_STATUS: KioskUiStatus = {
   meta: ["Camera boot", "Liveness engine", "Device trust"],
 };
 
+const KIOSK_COMPANY_NAME = "Main Entrance Terminal";
+const KIOSK_TERMINAL_NAME = "AttendanceKiosk";
+
 function formatTime(date: Date) {
   return date.toLocaleTimeString([], {
     hour: "2-digit",
@@ -75,6 +85,35 @@ function formatShortTime(timestamp: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+type VoiceGenderPreference = "female" | "male";
+
+function pickPreferredVoice(
+  voices: SpeechSynthesisVoice[],
+  preference: VoiceGenderPreference,
+) {
+  const englishVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("en"),
+  );
+
+  const preferredPattern =
+    preference === "female"
+      ? /female|woman|zira|samantha|victoria|ava|allison|karen|moira|serena|veena/i
+      : /male|man|david|mark|alex|daniel|fred|jorge|tom|aaron|nathan/i;
+
+  const preferredVoice = englishVoices.find((voice) =>
+    preferredPattern.test(
+      `${voice.name} ${voice.voiceURI}`,
+    ),
+  );
+
+  return (
+    preferredVoice ||
+    englishVoices.find((voice) => voice.default) ||
+    englishVoices[0] ||
+    null
+  );
 }
 
 function initials(label: string) {
@@ -98,6 +137,44 @@ function requestedActionLabel(action: KioskRequestedAction) {
       return "Break End";
     default:
       return "Auto";
+  }
+}
+
+function actionChallengeInstruction(
+  action: KioskRequestedAction,
+  challenge: LivenessChallenge,
+) {
+  const challengeName = challengeButtonLabel(challenge).toLowerCase();
+
+  switch (action) {
+    case "CLOCK_IN":
+      return `Welcome. Kindly follow the ${challengeName} challenge to get started for the day.`;
+    case "CLOCK_OUT":
+      return `You are about to clock out. Kindly follow the ${challengeName} challenge to close out for the day.`;
+    case "BREAK_START":
+      return `You are about to start your break. Kindly follow the ${challengeName} challenge to continue.`;
+    case "BREAK_END":
+      return `Welcome back. Kindly follow the ${challengeName} challenge to resume your day.`;
+    default:
+      return `Look at the camera to start the ${challengeName} challenge.`;
+  }
+}
+
+function actionChallengeHelper(
+  action: KioskRequestedAction,
+  challenge: LivenessChallenge,
+) {
+  switch (action) {
+    case "CLOCK_IN":
+      return `Follow this prompt to complete your clock in. ${challengeLabel(challenge)}`;
+    case "CLOCK_OUT":
+      return `Follow this prompt to complete your clock out. ${challengeLabel(challenge)}`;
+    case "BREAK_START":
+      return `Follow this prompt to start your break. ${challengeLabel(challenge)}`;
+    case "BREAK_END":
+      return `Follow this prompt to end your break and resume work. ${challengeLabel(challenge)}`;
+    default:
+      return `The kiosk is armed and ready for ${challengeLabel(challenge)}`;
   }
 }
 
@@ -163,27 +240,75 @@ function attendanceSuccessMessage(type: KioskAttendanceType) {
 function buildIdleStatus({
   action,
   livenessSelection,
+  awaitingClearFrame,
   modelsReady,
   networkOnline,
   unsyncedCount,
 }: {
   action: KioskRequestedAction;
   livenessSelection: LivenessChallengeSelection;
+  awaitingClearFrame: boolean;
   modelsReady: boolean;
   networkOnline: boolean;
   unsyncedCount: number;
 }): KioskUiStatus {
   const isAuto = action === "AUTO";
+  const hasManualChallenge = livenessSelection !== "AUTO";
+  const hasManualAction = action !== "AUTO";
+
+  if (awaitingClearFrame) {
+    return {
+      tone: "idle",
+      eyebrow: "Scanner Re-Arming",
+      title: "Step away from the camera",
+      detail: hasManualChallenge
+        ? `Clear the frame, then return for the ${challengeButtonLabel(livenessSelection)} challenge.`
+        : "Clear the frame so the kiosk can prepare the next verification.",
+      helper:
+        "When the frame is empty, the kiosk will automatically show that it is ready again.",
+      meta: [
+        modelsReady ? "Biometric engine ready" : "Loading biometric engine",
+        networkOnline ? "Device online" : "Network offline",
+        hasManualChallenge
+          ? `Manual ${challengeButtonLabel(livenessSelection)}`
+          : "Auto mode",
+        "Waiting for clear frame",
+        unsyncedCount > 0
+          ? `${unsyncedCount} queued offline`
+          : "Live sync ready",
+      ],
+    };
+  }
 
   return {
     tone: "idle",
-    eyebrow: isAuto ? "Terminal Ready" : "Action Selected",
-    title: isAuto ? "Ready to scan" : `${requestedActionLabel(action)} ready`,
-    detail: isAuto
-      ? "Look at the camera to clock in or out."
-      : `Look at the camera to ${requestedActionLabel(action).toLowerCase()}.`,
+    eyebrow: hasManualChallenge
+      ? hasManualAction
+        ? "Action Selected"
+        : "Manual Challenge Ready"
+      : isAuto
+        ? "Terminal Ready"
+        : "Action Selected",
+    title: hasManualChallenge
+      ? hasManualAction
+        ? `${requestedActionLabel(action)} ready`
+        : `${challengeButtonLabel(livenessSelection)} challenge ready`
+      : isAuto
+        ? "Ready to scan"
+        : `${requestedActionLabel(action)} ready`,
+    detail: hasManualChallenge
+      ? hasManualAction
+        ? actionChallengeInstruction(action, livenessSelection)
+        : `Look at the camera to start the ${challengeButtonLabel(livenessSelection).toLowerCase()} challenge.`
+      : isAuto
+        ? "Look at the camera to clock in or out."
+        : `Look at the camera to ${requestedActionLabel(action).toLowerCase()}.`,
     helper:
-      livenessSelection === "AUTO"
+      hasManualChallenge
+        ? hasManualAction
+          ? actionChallengeHelper(action, livenessSelection)
+          : `The kiosk is armed and ready for ${challengeLabel(livenessSelection)}`
+        : livenessSelection === "AUTO"
         ? isAuto
           ? "Auto-start scanning is armed. Keep your face inside the biometric frame."
           : `Manual action selected: ${requestedActionLabel(action)}. Tap Auto to let the kiosk decide automatically.`
@@ -196,6 +321,34 @@ function buildIdleStatus({
         ? "Random liveness challenge"
         : `Manual ${challengeButtonLabel(livenessSelection)}`,
       unsyncedCount > 0 ? `${unsyncedCount} queued offline` : "Live sync ready",
+    ],
+  };
+}
+
+function buildFaceDetectedHoldStatus({
+  countdownSeconds,
+  action,
+  livenessSelection,
+  networkOnline,
+}: {
+  countdownSeconds: number;
+  action: KioskRequestedAction;
+  livenessSelection: LivenessChallengeSelection;
+  networkOnline: boolean;
+}): KioskUiStatus {
+  return {
+    tone: "idle",
+    eyebrow: "Face Detected",
+    title: `Hold still to begin: ${countdownSeconds}`,
+    detail: `Face detected. Keep your face centered and steady. Challenge starts in ${countdownSeconds}.`,
+    helper:
+      "Stay inside the frame without moving away. The countdown resets if alignment is lost.",
+    meta: [
+      networkOnline ? "Network online" : "Network offline",
+      action === "AUTO" ? "Auto mode" : `Manual ${requestedActionLabel(action)}`,
+      livenessSelection === "AUTO"
+        ? "Random liveness challenge"
+        : `Manual ${challengeButtonLabel(livenessSelection)}`,
     ],
   };
 }
@@ -225,6 +378,24 @@ function mapChallengeToStep(challenge: LivenessChallenge): KioskLivenessStep {
       title: "Open mouth slightly",
       instruction: challengeLabel(challenge),
       icon: "mouth",
+    };
+  }
+
+  if (challenge === "SMILE") {
+    return {
+      id: "smile",
+      title: "Smile naturally",
+      instruction: challengeLabel(challenge),
+      icon: "smile",
+    };
+  }
+
+  if (challenge === "TILT_HEAD") {
+    return {
+      id: "tilt-head",
+      title: "Tilt head side to side",
+      instruction: challengeLabel(challenge),
+      icon: "tilt",
     };
   }
 
@@ -326,9 +497,10 @@ export function AttendanceKioskScreen() {
   const [historyError, setHistoryError] = useState("");
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [currentChallenge, setCurrentChallenge] =
-    useState<LivenessChallenge>("BLINK");
+    useState<LivenessChallenge>("TURN_HEAD");
   const [selectedChallenge, setSelectedChallenge] =
     useState<LivenessChallengeSelection>("AUTO");
+  const [awaitingClearFrame, setAwaitingClearFrame] = useState(false);
   const [successCard, setSuccessCard] = useState<KioskRecognitionResult | null>(
     null,
   );
@@ -344,13 +516,36 @@ export function AttendanceKioskScreen() {
   const [setupToken, setSetupToken] = useState("");
   const [setupError, setSetupError] = useState("");
   const [isActivating, setIsActivating] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceGender, setVoiceGender] =
+    useState<VoiceGenderPreference>("male");
+  const [speechReady, setSpeechReady] = useState(false);
+  const [welcomeVoiceState, setWelcomeVoiceState] = useState<
+    "pending" | "playing" | "done"
+  >("pending");
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>(
+    [],
+  );
+  const [holdCountdownStartedAt, setHoldCountdownStartedAt] = useState<
+    number | null
+  >(null);
+  const [faceDetectedCountdown, setFaceDetectedCountdown] = useState<
+    number | null
+  >(null);
 
   const processingRef = useRef(false);
   const requireClearFrameRef = useRef(false);
   const resetTimerRef = useRef<number | null>(null);
+  const welcomeFallbackTimerRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const speechEnabledRef = useRef(false);
+  const spokenPromptRef = useRef("");
+  const alignedFaceSinceRef = useRef<number | null>(null);
+  const voiceToggleId = useId();
+  const voiceGenderId = useId();
 
   const livenessSteps = buildLivenessSteps(currentChallenge);
+  const welcomePrompt = `Welcome to ${KIOSK_COMPANY_NAME}.`;
 
   const playFeedback = useEffectEvent(
     (tone: "success" | "error" | "warning") => {
@@ -410,7 +605,62 @@ export function AttendanceKioskScreen() {
     },
   );
 
-  const queueReset = useEffectEvent((nextStatus?: KioskUiStatus) => {
+  const speakPrompt = useEffectEvent(
+    (
+      text: string,
+      options?: {
+        onStart?: () => void;
+        onEnd?: () => void;
+        onError?: () => void;
+      },
+    ) => {
+    if (
+      typeof window === "undefined" ||
+      !voiceEnabled ||
+      !speechReady ||
+      !("speechSynthesis" in window)
+    ) {
+      return;
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(trimmed);
+    const preferredVoice = pickPreferredVoice(
+      availableVoices.length > 0
+        ? availableVoices
+        : window.speechSynthesis.getVoices(),
+      voiceGender,
+    );
+
+    utterance.lang = preferredVoice?.lang || "en-US";
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+    window.speechSynthesis.resume();
+    utterance.onstart = () => {
+      options?.onStart?.();
+    };
+    utterance.onend = () => {
+      options?.onEnd?.();
+    };
+    utterance.onerror = () => {
+      options?.onError?.();
+    };
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+    },
+  );
+
+  const queueReset = useEffectEvent(
+    (nextStatus?: KioskUiStatus, delayMs = KIOSK_RESULT_DISPLAY_MS) => {
     if (resetTimerRef.current !== null) {
       window.clearTimeout(resetTimerRef.current);
     }
@@ -418,21 +668,26 @@ export function AttendanceKioskScreen() {
     resetTimerRef.current = window.setTimeout(() => {
       processingRef.current = false;
       requireClearFrameRef.current = true;
+      setAwaitingClearFrame(true);
       setPhase("idle");
       setActiveStepIndex(0);
       setSuccessCard(null);
+      alignedFaceSinceRef.current = null;
+      setHoldCountdownStartedAt(null);
+      setFaceDetectedCountdown(null);
       setSelectedAction("AUTO");
       setStatus(
         nextStatus ??
           buildIdleStatus({
             action: "AUTO",
             livenessSelection: selectedChallenge,
+            awaitingClearFrame: true,
             modelsReady,
             networkOnline,
             unsyncedCount,
           }),
       );
-    }, 3000);
+    }, delayMs);
   });
 
   const loadHistory = useCallback(async (overrideToken?: string) => {
@@ -501,10 +756,7 @@ export function AttendanceKioskScreen() {
         attemptId,
       );
 
-      if (
-        firstAttempt.entry.isWarning &&
-        firstAttempt.entry.message?.toLowerCase().includes("already clocked in")
-      ) {
+      if (shouldAutoClockOutFromWarning(firstAttempt)) {
         return sendClockAttempt(embedding, "CLOCK_OUT", attemptId);
       }
 
@@ -517,11 +769,19 @@ export function AttendanceKioskScreen() {
       buildIdleStatus({
         action: selectedAction,
         livenessSelection: selectedChallenge,
+        awaitingClearFrame,
         modelsReady,
         networkOnline,
         unsyncedCount,
       }),
-    [modelsReady, networkOnline, selectedAction, selectedChallenge, unsyncedCount],
+    [
+      awaitingClearFrame,
+      modelsReady,
+      networkOnline,
+      selectedAction,
+      selectedChallenge,
+      unsyncedCount,
+    ],
   );
 
   const failScan = useEffectEvent((message: string) => {
@@ -537,7 +797,7 @@ export function AttendanceKioskScreen() {
         ? "Liveness verification failed"
         : "Face not recognized",
       detail: message,
-      helper: "The kiosk will reset automatically after three seconds.",
+      helper: "The kiosk will reset automatically after a short pause.",
       meta: [
         networkOnline ? "Network online" : "Network offline",
         selectedAction === "AUTO"
@@ -571,6 +831,10 @@ export function AttendanceKioskScreen() {
         if (detections.length === 0) {
           requireClearFrameRef.current = false;
           processingRef.current = false;
+          alignedFaceSinceRef.current = null;
+          setHoldCountdownStartedAt(null);
+          setFaceDetectedCountdown(null);
+          setAwaitingClearFrame(false);
           setPhase("idle");
           setStatus(idleStatus);
         }
@@ -578,6 +842,9 @@ export function AttendanceKioskScreen() {
       }
 
       if (detections.length === 0) {
+        alignedFaceSinceRef.current = null;
+        setHoldCountdownStartedAt(null);
+        setFaceDetectedCountdown(null);
         if (!processingRef.current && phase !== "idle") {
           setPhase("idle");
           setStatus(idleStatus);
@@ -592,7 +859,63 @@ export function AttendanceKioskScreen() {
         return;
       }
 
+      if (!isFaceWellPositioned(videoRef.current, detections[0])) {
+        alignedFaceSinceRef.current = null;
+        setHoldCountdownStartedAt(null);
+        setFaceDetectedCountdown(null);
+        setPhase("idle");
+        setStatus({
+          tone: "idle",
+          eyebrow: "Face Detected",
+          title: "Position your face well",
+          detail:
+            "Face detected. Make sure your face is positioned well to start the challenge.",
+          helper:
+            "Move closer, center your full face inside the frame, and hold steady. The kiosk will start automatically once alignment is good.",
+          meta: [
+            networkOnline ? "Network online" : "Network offline",
+            selectedAction === "AUTO"
+              ? "Auto mode"
+              : `Manual ${requestedActionLabel(selectedAction)}`,
+            selectedChallenge === "AUTO"
+              ? "Random liveness challenge"
+              : `Manual ${challengeButtonLabel(selectedChallenge)}`,
+          ],
+        });
+        return;
+      }
+
+      if (alignedFaceSinceRef.current === null) {
+        const startedAt = Date.now();
+        alignedFaceSinceRef.current = startedAt;
+        setHoldCountdownStartedAt(startedAt);
+        setFaceDetectedCountdown(
+          Math.ceil(KIOSK_FACE_DETECTED_DELAY_MS / 1000),
+        );
+      }
+
+      if (
+        Date.now() - alignedFaceSinceRef.current <
+        KIOSK_FACE_DETECTED_DELAY_MS
+      ) {
+        setPhase("idle");
+        setStatus(
+          buildFaceDetectedHoldStatus({
+            countdownSeconds:
+              faceDetectedCountdown ??
+              Math.ceil(KIOSK_FACE_DETECTED_DELAY_MS / 1000),
+            action: selectedAction,
+            livenessSelection: selectedChallenge,
+            networkOnline,
+          }),
+        );
+        return;
+      }
+
       processingRef.current = true;
+      alignedFaceSinceRef.current = null;
+      setHoldCountdownStartedAt(null);
+      setFaceDetectedCountdown(null);
       const nextChallenge =
         selectedChallenge === "AUTO"
           ? pickRandomChallenge()
@@ -607,8 +930,11 @@ export function AttendanceKioskScreen() {
         detail:
           selectedAction === "AUTO"
             ? "Presence confirmed. Preparing challenge prompt."
-            : `Presence confirmed. Preparing ${requestedActionLabel(selectedAction).toLowerCase()} verification.`,
-        helper: "Follow the on-screen prompt exactly as shown.",
+            : actionChallengeInstruction(selectedAction, nextChallenge),
+        helper:
+          selectedAction === "AUTO"
+            ? "Follow the on-screen prompt exactly as shown."
+            : actionChallengeHelper(selectedAction, nextChallenge),
         meta: [
           networkOnline ? "Network online" : "Network offline",
           selectedAction === "AUTO"
@@ -793,6 +1119,7 @@ export function AttendanceKioskScreen() {
           buildIdleStatus({
             action: "AUTO",
             livenessSelection: selectedChallenge,
+            awaitingClearFrame: true,
             modelsReady,
             networkOnline: false,
             unsyncedCount,
@@ -804,7 +1131,11 @@ export function AttendanceKioskScreen() {
       if (message.toLowerCase().startsWith("no face detected")) {
         if (requireClearFrameRef.current) {
           requireClearFrameRef.current = false;
+          setAwaitingClearFrame(false);
         }
+        alignedFaceSinceRef.current = null;
+        setHoldCountdownStartedAt(null);
+        setFaceDetectedCountdown(null);
         processingRef.current = false;
         setPhase("idle");
         setStatus(idleStatus);
@@ -814,6 +1145,43 @@ export function AttendanceKioskScreen() {
       failScan(message);
     }
   });
+
+  useEffect(() => {
+    if (holdCountdownStartedAt === null) {
+      return;
+    }
+
+    const updateCountdown = () => {
+      const remainingMs =
+        KIOSK_FACE_DETECTED_DELAY_MS - (Date.now() - holdCountdownStartedAt);
+      const remainingSeconds = Math.max(1, Math.ceil(remainingMs / 1000));
+
+      setFaceDetectedCountdown(remainingSeconds);
+      if (!processingRef.current && phase === "idle") {
+        setStatus(
+          buildFaceDetectedHoldStatus({
+            countdownSeconds: remainingSeconds,
+            action: selectedAction,
+            livenessSelection: selectedChallenge,
+            networkOnline,
+          }),
+        );
+      }
+    };
+
+    updateCountdown();
+    const interval = window.setInterval(updateCountdown, 150);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [
+    holdCountdownStartedAt,
+    networkOnline,
+    phase,
+    selectedAction,
+    selectedChallenge,
+  ]);
 
   useEffect(() => {
     if (isSetup) {
@@ -912,14 +1280,43 @@ export function AttendanceKioskScreen() {
   }, [cameraError, isSetup, modelsReady, ready]);
 
   useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    const updateVoices = () => {
+      setAvailableVoices(window.speechSynthesis.getVoices());
+    };
+
+    updateVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", updateVoices);
+
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", updateVoices);
+    };
+  }, []);
+
+  useEffect(() => {
     const resumeAudio = () => {
+      speechEnabledRef.current = true;
+      setSpeechReady(true);
+
       if (audioContextRef.current?.state === "suspended") {
         void audioContextRef.current.resume();
       }
     };
 
     window.addEventListener("pointerdown", resumeAudio);
-    return () => window.removeEventListener("pointerdown", resumeAudio);
+    window.addEventListener("mousedown", resumeAudio);
+    window.addEventListener("touchstart", resumeAudio);
+    window.addEventListener("keydown", resumeAudio);
+
+    return () => {
+      window.removeEventListener("pointerdown", resumeAudio);
+      window.removeEventListener("mousedown", resumeAudio);
+      window.removeEventListener("touchstart", resumeAudio);
+      window.removeEventListener("keydown", resumeAudio);
+    };
   }, []);
 
   useEffect(() => {
@@ -927,8 +1324,14 @@ export function AttendanceKioskScreen() {
       if (resetTimerRef.current !== null) {
         window.clearTimeout(resetTimerRef.current);
       }
+      if (welcomeFallbackTimerRef.current !== null) {
+        window.clearTimeout(welcomeFallbackTimerRef.current);
+      }
       if (audioContextRef.current) {
         void audioContextRef.current.close().catch(() => undefined);
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
       }
       void SyncDB.clearSynced().catch(() => undefined);
     };
@@ -965,6 +1368,224 @@ export function AttendanceKioskScreen() {
     }
   }, [cameraError, isSetup, networkOnline]);
 
+  useEffect(() => {
+    if (selectedChallenge !== "AUTO") {
+      setCurrentChallenge(selectedChallenge);
+    }
+  }, [selectedChallenge]);
+
+  useEffect(() => {
+    if (
+      isSetup ||
+      !voiceEnabled ||
+      !speechReady ||
+      welcomeVoiceState !== "pending" ||
+      typeof window === "undefined" ||
+      !("speechSynthesis" in window)
+    ) {
+      return;
+    }
+
+    if (welcomeFallbackTimerRef.current !== null) {
+      window.clearTimeout(welcomeFallbackTimerRef.current);
+    }
+
+    welcomeFallbackTimerRef.current = window.setTimeout(() => {
+      setWelcomeVoiceState("done");
+      welcomeFallbackTimerRef.current = null;
+    }, 4000);
+
+    speakPrompt(welcomePrompt, {
+      onStart: () => setWelcomeVoiceState("playing"),
+      onEnd: () => {
+        if (welcomeFallbackTimerRef.current !== null) {
+          window.clearTimeout(welcomeFallbackTimerRef.current);
+          welcomeFallbackTimerRef.current = null;
+        }
+        setWelcomeVoiceState("done");
+      },
+      onError: () => {
+        if (welcomeFallbackTimerRef.current !== null) {
+          window.clearTimeout(welcomeFallbackTimerRef.current);
+          welcomeFallbackTimerRef.current = null;
+        }
+        setWelcomeVoiceState("done");
+      },
+    });
+  }, [
+    availableVoices,
+    isSetup,
+    speechReady,
+    voiceEnabled,
+    voiceGender,
+    welcomePrompt,
+    welcomeVoiceState,
+  ]);
+
+  const spokenPrompt = useMemo(() => {
+    if (isSetup) {
+      return "Activate this kiosk with a valid device token to continue.";
+    }
+
+    if (cameraError) {
+      return `Camera preview unavailable. ${cameraError}`;
+    }
+
+    if (phase === "liveness") {
+      return `${status.title}. ${status.detail}`;
+    }
+
+    if (phase === "processing") {
+      return `${status.title}. ${status.detail}`;
+    }
+
+    if (phase === "success" || phase === "warning" || phase === "error") {
+      return `${status.title}. ${status.detail}`;
+    }
+
+    if (awaitingClearFrame) {
+      return selectedChallenge !== "AUTO"
+        ? `Step away from the camera. Return for the ${challengeButtonLabel(selectedChallenge)} challenge when the kiosk is ready.`
+        : "Step away from the camera so the kiosk can re-arm for the next scan.";
+    }
+
+    if (holdCountdownStartedAt !== null) {
+      return "Face detected. Hold still while the kiosk starts the challenge.";
+    }
+
+    if (status.eyebrow === "Face Detected") {
+      return `${status.title}. ${status.detail}`;
+    }
+
+    if (selectedChallenge !== "AUTO" && selectedAction !== "AUTO") {
+      return actionChallengeInstruction(selectedAction, selectedChallenge);
+    }
+
+    if (selectedChallenge !== "AUTO") {
+      return `${challengeButtonLabel(selectedChallenge)} challenge ready. ${challengeLabel(selectedChallenge)}`;
+    }
+
+    if (selectedAction !== "AUTO") {
+      return `${requestedActionLabel(selectedAction)} selected. Look at the camera when you are ready.`;
+    }
+
+    return "Kiosk ready for attendance verification.";
+  }, [
+    awaitingClearFrame,
+    cameraError,
+    holdCountdownStartedAt,
+    isSetup,
+    phase,
+    selectedAction,
+    selectedChallenge,
+    status.detail,
+    status.eyebrow,
+    status.title,
+  ]);
+
+  const handleVoiceToggle = useCallback(() => {
+    const next = !voiceEnabled;
+    setVoiceEnabled(next);
+    speechEnabledRef.current = true;
+
+    if (typeof window !== "undefined") {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    if (!next && welcomeVoiceState === "playing") {
+      setWelcomeVoiceState("pending");
+    }
+
+    if (next) {
+      spokenPromptRef.current = "";
+
+      if (welcomeVoiceState !== "done") {
+        setWelcomeVoiceState("pending");
+        return;
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        spokenPrompt.trim() &&
+        "speechSynthesis" in window
+      ) {
+        const utterance = new SpeechSynthesisUtterance(spokenPrompt.trim());
+        const preferredVoice = pickPreferredVoice(
+          availableVoices.length > 0
+            ? availableVoices
+            : window.speechSynthesis.getVoices(),
+          voiceGender,
+        );
+
+        utterance.lang = preferredVoice?.lang || "en-US";
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, [
+    availableVoices,
+    spokenPrompt,
+    voiceEnabled,
+    voiceGender,
+    welcomeVoiceState,
+  ]);
+
+  const handleVoiceGenderChange = useCallback(
+    (next: VoiceGenderPreference) => {
+      setVoiceGender(next);
+      spokenPromptRef.current = "";
+
+      if (
+        !voiceEnabled ||
+        typeof window === "undefined" ||
+        !spokenPrompt.trim() ||
+        !("speechSynthesis" in window)
+      ) {
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(spokenPrompt.trim());
+      const preferredVoice = pickPreferredVoice(
+        availableVoices.length > 0
+          ? availableVoices
+          : window.speechSynthesis.getVoices(),
+        next,
+      );
+
+      utterance.lang = preferredVoice?.lang || "en-US";
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    },
+    [availableVoices, spokenPrompt, voiceEnabled],
+  );
+
+  useEffect(() => {
+    if (!speechReady || welcomeVoiceState !== "done") {
+      return;
+    }
+
+    if (!spokenPrompt || spokenPromptRef.current === spokenPrompt) {
+      return;
+    }
+
+    spokenPromptRef.current = spokenPrompt;
+    speakPrompt(spokenPrompt);
+  }, [availableVoices, speechReady, spokenPrompt, welcomeVoiceState]);
+
   const overlayMessage = isSetup
     ? "Activate this kiosk with a valid device token to enable secure attendance."
     : cameraError
@@ -978,12 +1599,20 @@ export function AttendanceKioskScreen() {
             : `Hold still while the kiosk completes ${requestedActionLabel(selectedAction).toLowerCase()}.`
           : phase === "success"
             ? "Biometric match complete. Attendance event recorded."
-            : phase === "warning"
+          : phase === "warning"
               ? "Attendance needs review or the kiosk requires network recovery."
-              : phase === "error"
-                ? "Verification did not complete. Clear the frame and try again."
+                : phase === "error"
+                  ? "Verification did not complete. Clear the frame and try again."
+                  : status.eyebrow === "Face Detected"
+                    ? `${status.title}. ${status.detail}`
+                : awaitingClearFrame
+                  ? selectedChallenge !== "AUTO"
+                    ? `Clear the frame, then return. ${challengeButtonLabel(selectedChallenge)} challenge will start automatically when ready.`
+                    : "Clear the frame so the kiosk can re-arm for the next scan."
                 : selectedChallenge !== "AUTO"
-                  ? `Manual liveness challenge selected: ${challengeButtonLabel(selectedChallenge)}. Face alignment is monitored continuously.`
+                  ? selectedAction !== "AUTO"
+                    ? actionChallengeInstruction(selectedAction, selectedChallenge)
+                    : `${challengeButtonLabel(selectedChallenge)} challenge is ready. Face the camera to begin.`
                   : selectedAction === "AUTO"
                     ? "Face alignment is monitored continuously for fast clock in and clock out."
                     : `Manual action selected: ${requestedActionLabel(selectedAction)}. Face alignment is monitored continuously.`;
@@ -1002,11 +1631,13 @@ export function AttendanceKioskScreen() {
       window.localStorage.setItem("kiosk_token", setupToken.trim());
       setIsSetup(false);
       setSetupToken("");
+      alignedFaceSinceRef.current = null;
       setSelectedAction("AUTO");
       setStatus(
         buildIdleStatus({
           action: "AUTO",
           livenessSelection: selectedChallenge,
+          awaitingClearFrame: false,
           modelsReady,
           networkOnline,
           unsyncedCount,
@@ -1157,8 +1788,8 @@ export function AttendanceKioskScreen() {
 
       <div className="relative mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1840px] flex-col gap-4 sm:gap-5 md:gap-6 lg:min-h-[calc(100vh-4rem)]">
         <KioskHeader
-          companyName="Main Entrance Terminal"
-          terminalName="AttendanceKiosk"
+          companyName={KIOSK_COMPANY_NAME}
+          terminalName={KIOSK_TERMINAL_NAME}
           cameraReady={ready && modelsReady}
           cameraError={cameraError}
           networkOnline={networkOnline}
@@ -1167,6 +1798,56 @@ export function AttendanceKioskScreen() {
 
         <div className="flex flex-1 flex-col gap-4 sm:gap-5 md:gap-6 xl:flex-row">
           <section className="flex min-w-0 flex-col gap-4 sm:gap-5 md:gap-6 xl:w-[65%]">
+            <div className="flex flex-wrap justify-end gap-3">
+              <div
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1"
+                role="radiogroup"
+                aria-labelledby={voiceGenderId}
+              >
+                <span id={voiceGenderId} className="sr-only">
+                  Voice gender
+                </span>
+                {(["female", "male"] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={voiceGender === option}
+                    onClick={() => handleVoiceGenderChange(option)}
+                    className={`rounded-full px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] transition ${
+                      voiceGender === option
+                        ? "bg-blue-500/20 text-white"
+                        : "text-slate-300 hover:bg-white/5"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={voiceEnabled}
+                aria-labelledby={voiceToggleId}
+                onClick={() => handleVoiceToggle()}
+                className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] transition ${
+                  voiceEnabled
+                    ? "border-blue-400/24 bg-blue-500/14 text-white"
+                    : "border-white/10 bg-white/5 text-slate-300"
+                }`}
+              >
+                {voiceEnabled ? (
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span id={voiceToggleId}>
+                  Voice {voiceEnabled ? "On" : "Off"}
+                </span>
+              </button>
+            </div>
+
             <AttendanceActionSelector
               selectedAction={selectedAction}
               onSelect={setSelectedAction}

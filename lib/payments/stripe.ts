@@ -93,15 +93,22 @@ export async function createStripeCheckoutSession(
   };
 }
 
-export async function verifyStripeWebhookSignature(payload: string, signature: string) {
+export async function verifyStripeWebhookSignature(
+  payload: string,
+  signature: string,
+): Promise<Stripe.Event> {
   const secret = await getPlatformSecret("STRIPE_WEBHOOK_SECRET");
   if (!secret) {
-    throw new ApiError(500, "Missing STRIPE_WEBHOOK_SECRET in database or environment.");
+    throw new ApiError(
+      500,
+      "Missing STRIPE_WEBHOOK_SECRET in database or environment.",
+    );
   }
 
   const stripe = await getStripeClient();
   return stripe.webhooks.constructEvent(payload, signature, secret);
 }
+
 
 export async function retrieveStripeCheckoutSession(sessionId: string) {
   const stripe = await getStripeClient();

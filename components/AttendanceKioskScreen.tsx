@@ -15,6 +15,7 @@ import { AttendanceActionSelector } from "@/components/AttendanceActionSelector"
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BrandLogo } from "@/components/brand-logo";
 import { KioskHeader } from "@/components/KioskHeader";
+import { LivenessChallengeSelector } from "@/components/LivenessChallengeSelector";
 import { LivenessPrompt } from "@/components/LivenessPrompt";
 import { RecentActivity } from "@/components/RecentActivity";
 import { ScannerFrame } from "@/components/ScannerFrame";
@@ -41,10 +42,12 @@ import {
   loadFaceModels,
 } from "@/lib/face-client";
 import {
+  challengeButtonLabel,
   challengeLabel,
   pickRandomChallenge,
   runLivenessChallenge,
   type LivenessChallenge,
+  type LivenessChallengeSelection,
 } from "@/lib/liveness";
 
 const WARMING_STATUS: KioskUiStatus = {
@@ -159,11 +162,13 @@ function attendanceSuccessMessage(type: KioskAttendanceType) {
 
 function buildIdleStatus({
   action,
+  livenessSelection,
   modelsReady,
   networkOnline,
   unsyncedCount,
 }: {
   action: KioskRequestedAction;
+  livenessSelection: LivenessChallengeSelection;
   modelsReady: boolean;
   networkOnline: boolean;
   unsyncedCount: number;
@@ -177,13 +182,19 @@ function buildIdleStatus({
     detail: isAuto
       ? "Look at the camera to clock in or out."
       : `Look at the camera to ${requestedActionLabel(action).toLowerCase()}.`,
-    helper: isAuto
-      ? "Auto-start scanning is armed. Keep your face inside the biometric frame."
-      : `Manual action selected: ${requestedActionLabel(action)}. Tap Auto to let the kiosk decide automatically.`,
+    helper:
+      livenessSelection === "AUTO"
+        ? isAuto
+          ? "Auto-start scanning is armed. Keep your face inside the biometric frame."
+          : `Manual action selected: ${requestedActionLabel(action)}. Tap Auto to let the kiosk decide automatically.`
+        : `Manual liveness challenge set to ${challengeButtonLabel(livenessSelection)}. Keep your face inside the biometric frame.`,
     meta: [
       modelsReady ? "Biometric engine ready" : "Loading biometric engine",
       networkOnline ? "Device online" : "Network offline",
       isAuto ? "Auto mode" : `Manual ${requestedActionLabel(action)}`,
+      livenessSelection === "AUTO"
+        ? "Random liveness challenge"
+        : `Manual ${challengeButtonLabel(livenessSelection)}`,
       unsyncedCount > 0 ? `${unsyncedCount} queued offline` : "Live sync ready",
     ],
   };
@@ -316,6 +327,8 @@ export function AttendanceKioskScreen() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [currentChallenge, setCurrentChallenge] =
     useState<LivenessChallenge>("BLINK");
+  const [selectedChallenge, setSelectedChallenge] =
+    useState<LivenessChallengeSelection>("AUTO");
   const [successCard, setSuccessCard] = useState<KioskRecognitionResult | null>(
     null,
   );
@@ -413,6 +426,7 @@ export function AttendanceKioskScreen() {
         nextStatus ??
           buildIdleStatus({
             action: "AUTO",
+            livenessSelection: selectedChallenge,
             modelsReady,
             networkOnline,
             unsyncedCount,
@@ -502,11 +516,12 @@ export function AttendanceKioskScreen() {
     () =>
       buildIdleStatus({
         action: selectedAction,
+        livenessSelection: selectedChallenge,
         modelsReady,
         networkOnline,
         unsyncedCount,
       }),
-    [modelsReady, networkOnline, selectedAction, unsyncedCount],
+    [modelsReady, networkOnline, selectedAction, selectedChallenge, unsyncedCount],
   );
 
   const failScan = useEffectEvent((message: string) => {
@@ -528,6 +543,9 @@ export function AttendanceKioskScreen() {
         selectedAction === "AUTO"
           ? "Auto mode"
           : `Manual ${requestedActionLabel(selectedAction)}`,
+        selectedChallenge === "AUTO"
+          ? "Random liveness challenge"
+          : `Manual ${challengeButtonLabel(selectedChallenge)}`,
       ],
     });
     playFeedback("error");
@@ -575,7 +593,10 @@ export function AttendanceKioskScreen() {
       }
 
       processingRef.current = true;
-      const nextChallenge = pickRandomChallenge();
+      const nextChallenge =
+        selectedChallenge === "AUTO"
+          ? pickRandomChallenge()
+          : selectedChallenge;
       setCurrentChallenge(nextChallenge);
       setPhase("liveness");
       setActiveStepIndex(0);
@@ -593,6 +614,9 @@ export function AttendanceKioskScreen() {
           selectedAction === "AUTO"
             ? "Auto mode"
             : `Manual ${requestedActionLabel(selectedAction)}`,
+          selectedChallenge === "AUTO"
+            ? "Random liveness challenge"
+            : `Manual ${challengeButtonLabel(selectedChallenge)}`,
         ],
       });
 
@@ -612,6 +636,9 @@ export function AttendanceKioskScreen() {
           selectedAction === "AUTO"
             ? "Auto mode"
             : `Manual ${requestedActionLabel(selectedAction)}`,
+          selectedChallenge === "AUTO"
+            ? "Random liveness challenge"
+            : `Manual ${challengeButtonLabel(selectedChallenge)}`,
         ],
       });
 
@@ -644,6 +671,9 @@ export function AttendanceKioskScreen() {
           selectedAction === "AUTO"
             ? "Auto mode"
             : `Manual ${requestedActionLabel(selectedAction)}`,
+          selectedChallenge === "AUTO"
+            ? "Random liveness challenge"
+            : `Manual ${challengeButtonLabel(selectedChallenge)}`,
         ],
       });
 
@@ -675,6 +705,9 @@ export function AttendanceKioskScreen() {
             selectedAction === "AUTO"
               ? "Auto mode"
               : `Manual ${requestedActionLabel(selectedAction)}`,
+            selectedChallenge === "AUTO"
+              ? "Random liveness challenge"
+              : `Manual ${challengeButtonLabel(selectedChallenge)}`,
           ],
         });
         playFeedback("warning");
@@ -709,6 +742,9 @@ export function AttendanceKioskScreen() {
           selectedAction === "AUTO"
             ? "Auto mode"
             : `Manual ${requestedActionLabel(selectedAction)}`,
+          selectedChallenge === "AUTO"
+            ? "Random liveness challenge"
+            : `Manual ${challengeButtonLabel(selectedChallenge)}`,
         ],
       });
       playFeedback("success");
@@ -747,12 +783,16 @@ export function AttendanceKioskScreen() {
             selectedAction === "AUTO"
               ? "Auto mode"
               : `Manual ${requestedActionLabel(selectedAction)}`,
+            selectedChallenge === "AUTO"
+              ? "Random liveness challenge"
+              : `Manual ${challengeButtonLabel(selectedChallenge)}`,
           ],
         });
         playFeedback("warning");
         queueReset(
           buildIdleStatus({
             action: "AUTO",
+            livenessSelection: selectedChallenge,
             modelsReady,
             networkOnline: false,
             unsyncedCount,
@@ -942,9 +982,11 @@ export function AttendanceKioskScreen() {
               ? "Attendance needs review or the kiosk requires network recovery."
               : phase === "error"
                 ? "Verification did not complete. Clear the frame and try again."
-                : selectedAction === "AUTO"
-                  ? "Face alignment is monitored continuously for fast clock in and clock out."
-                  : `Manual action selected: ${requestedActionLabel(selectedAction)}. Face alignment is monitored continuously.`;
+                : selectedChallenge !== "AUTO"
+                  ? `Manual liveness challenge selected: ${challengeButtonLabel(selectedChallenge)}. Face alignment is monitored continuously.`
+                  : selectedAction === "AUTO"
+                    ? "Face alignment is monitored continuously for fast clock in and clock out."
+                    : `Manual action selected: ${requestedActionLabel(selectedAction)}. Face alignment is monitored continuously.`;
 
   async function handleActivate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -964,6 +1006,7 @@ export function AttendanceKioskScreen() {
       setStatus(
         buildIdleStatus({
           action: "AUTO",
+          livenessSelection: selectedChallenge,
           modelsReady,
           networkOnline,
           unsyncedCount,
@@ -1127,6 +1170,12 @@ export function AttendanceKioskScreen() {
             <AttendanceActionSelector
               selectedAction={selectedAction}
               onSelect={setSelectedAction}
+              disabled={phase === "liveness" || phase === "processing"}
+            />
+
+            <LivenessChallengeSelector
+              selectedChallenge={selectedChallenge}
+              onSelect={setSelectedChallenge}
               disabled={phase === "liveness" || phase === "processing"}
             />
 

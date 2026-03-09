@@ -1,7 +1,19 @@
 import { LIVENESS_TIMEOUT_MS } from "@/lib/config";
 import { detectFacesWithLandmarks } from "@/lib/face-client";
 
-export type LivenessChallenge = "BLINK" | "TURN_HEAD" | "OPEN_MOUTH" | "NOD_HEAD";
+export type LivenessChallenge =
+  | "BLINK"
+  | "TURN_HEAD"
+  | "OPEN_MOUTH"
+  | "NOD_HEAD";
+export type LivenessChallengeSelection = "AUTO" | LivenessChallenge;
+
+export const LIVENESS_CHALLENGES: LivenessChallenge[] = [
+  "BLINK",
+  "TURN_HEAD",
+  "OPEN_MOUTH",
+  "NOD_HEAD",
+];
 
 type LivenessResult = {
   ok: boolean;
@@ -70,9 +82,24 @@ export function challengeLabel(challenge: LivenessChallenge) {
 }
 
 export function pickRandomChallenge(): LivenessChallenge {
-  const options: LivenessChallenge[] = ["BLINK", "TURN_HEAD", "OPEN_MOUTH", "NOD_HEAD"];
-  const index = Math.floor(Math.random() * options.length);
-  return options[index] || "BLINK";
+  const index = Math.floor(Math.random() * LIVENESS_CHALLENGES.length);
+  return LIVENESS_CHALLENGES[index] || "BLINK";
+}
+
+export function challengeButtonLabel(challenge: LivenessChallenge) {
+  if (challenge === "TURN_HEAD") {
+    return "Turn Head";
+  }
+
+  if (challenge === "OPEN_MOUTH") {
+    return "Open Mouth";
+  }
+
+  if (challenge === "NOD_HEAD") {
+    return "Nod Head";
+  }
+
+  return "Blink";
 }
 
 export async function runLivenessChallenge(

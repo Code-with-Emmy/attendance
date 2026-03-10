@@ -1,12 +1,17 @@
-import type { Prisma, SubscriptionPlan } from "@prisma/client";
-import { BillingCycle } from "@prisma/client";
+import { BillingCycle, Prisma, type SubscriptionPlan } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
+  FALLBACK_PUBLIC_PLANS,
   type PublicPlan,
   formatPublicMoney,
+  getFallbackPublicPlanByCode,
   getPublicPlanAmount,
 } from "@/lib/billing/public";
 import { ApiError } from "@/lib/server/errors";
+import {
+  isPrismaDatabaseUnavailable,
+  logDatabaseUnavailableOnce,
+} from "@/lib/server/prisma-availability";
 
 export type DbPlanSummary = PublicPlan;
 
@@ -49,7 +54,7 @@ export function mapPlanSummary(plan: SubscriptionPlan): DbPlanSummary {
   let highlight: boolean | undefined;
 
   if (plan.features && typeof plan.features === "object" && !Array.isArray(plan.features)) {
-    const f = plan.features as Record<string, any>;
+    const f = plan.features as Record<string, unknown>;
     if (typeof f.audience === "string") audience = f.audience;
     if (typeof f.badge === "string") badge = f.badge;
     if (typeof f.highlight === "boolean") highlight = f.highlight;
@@ -74,15 +79,27 @@ export function mapPlanSummary(plan: SubscriptionPlan): DbPlanSummary {
 }
 
 export async function listActivePlans(): Promise<DbPlanSummary[]> {
-  const plans = await prisma.subscriptionPlan.findMany({
-    where: { isActive: true },
-    orderBy: [
-      { monthlyPrice: "asc" },
-      { createdAt: "asc" },
-    ],
-  });
+  try {
+    const plans = await prisma.subscriptionPlan.findMany({
+      where: { isActive: true },
+      orderBy: [
+        { monthlyPrice: "asc" },
+        { createdAt: "asc" },
+      ],
+    });
 
-  return plans.map(mapPlanSummary);
+    return plans.map(mapPlanSummary);
+  } catch (error) {
+    if (!isPrismaDatabaseUnavailable(error)) {
+      throw error;
+    }
+
+    logDatabaseUnavailableOnce(
+      "billing:listActivePlans",
+      "Billing catalog read failed. Falling back to built-in public plans.",
+    );
+    return FALLBACK_PUBLIC_PLANS;
+  }
 }
 
 export async function getPlanByCode(
@@ -90,25 +107,37 @@ export async function getPlanByCode(
 ): Promise<DbPlanSummary> {
   const normalized = code?.trim().toLowerCase() || "growth";
 
-  const plan =
-    (await prisma.subscriptionPlan.findFirst({
-      where: {
-        code: normalized,
-        isActive: true,
-      },
-    })) ??
-    (await prisma.subscriptionPlan.findFirst({
-      where: {
-        code: "growth",
-        isActive: true,
-      },
-    }));
+  try {
+    const plan =
+      (await prisma.subscriptionPlan.findFirst({
+        where: {
+          code: normalized,
+          isActive: true,
+        },
+      })) ??
+      (await prisma.subscriptionPlan.findFirst({
+        where: {
+          code: "growth",
+          isActive: true,
+        },
+      }));
 
-  if (!plan) {
-    throw new ApiError(404, "No active pricing plans are configured.");
+    if (!plan) {
+      throw new ApiError(404, "No active pricing plans are configured.");
+    }
+
+    return mapPlanSummary(plan);
+  } catch (error) {
+    if (!isPrismaDatabaseUnavailable(error)) {
+      throw error;
+    }
+
+    logDatabaseUnavailableOnce(
+      "billing:getPlanByCode",
+      "Plan lookup failed. Falling back to built-in public plan.",
+    );
+    return getFallbackPublicPlanByCode(normalized);
   }
-
-  return mapPlanSummary(plan);
 }
 
 export async function requireActivePlanByCode(code: string) {

@@ -30,6 +30,7 @@ type FaceDetectionWithDescriptor = FaceDetectionWithLandmarks & {
 
 let faceApiPromise: Promise<FaceApiModule> | null = null;
 let modelsLoaded = false;
+const DETECTOR_INPUT_SIZES = [512, 416, 320] as const;
 
 async function getFaceApi() {
   if (!faceApiPromise) {
@@ -38,9 +39,9 @@ async function getFaceApi() {
   return faceApiPromise;
 }
 
-function detectorOptions(faceApi: FaceApiModule) {
+function detectorOptions(faceApi: FaceApiModule, inputSize: number) {
   return new faceApi.TinyFaceDetectorOptions({
-    inputSize: 416,
+    inputSize,
     scoreThreshold: FACE_DETECTOR_SCORE_THRESHOLD,
   });
 }
@@ -68,14 +69,14 @@ export function isFaceWellPositioned(
   const centerY = (y + height / 2) / videoHeight;
 
   return (
-    score >= 0.78 &&
-    widthRatio >= 0.2 &&
-    heightRatio >= 0.3 &&
-    areaRatio >= 0.08 &&
-    centerX >= 0.28 &&
-    centerX <= 0.72 &&
-    centerY >= 0.22 &&
-    centerY <= 0.78
+    score >= 0.62 &&
+    widthRatio >= 0.16 &&
+    heightRatio >= 0.22 &&
+    areaRatio >= 0.045 &&
+    centerX >= 0.22 &&
+    centerX <= 0.78 &&
+    centerY >= 0.16 &&
+    centerY <= 0.84
   );
 }
 
@@ -99,19 +100,35 @@ export async function detectFacesWithLandmarks(video: HTMLVideoElement): Promise
   await loadFaceModels();
   const faceApi = await getFaceApi();
 
-  return (await faceApi
-    .detectAllFaces(video, detectorOptions(faceApi))
-    .withFaceLandmarks()) as unknown as FaceDetectionWithLandmarks[];
+  for (const inputSize of DETECTOR_INPUT_SIZES) {
+    const detections = (await faceApi
+      .detectAllFaces(video, detectorOptions(faceApi, inputSize))
+      .withFaceLandmarks()) as unknown as FaceDetectionWithLandmarks[];
+
+    if (detections.length > 0) {
+      return detections;
+    }
+  }
+
+  return [];
 }
 
 export async function captureSingleFaceEmbedding(video: HTMLVideoElement): Promise<number[]> {
   await loadFaceModels();
   const faceApi = await getFaceApi();
 
-  const detections = (await faceApi
-    .detectAllFaces(video, detectorOptions(faceApi))
-    .withFaceLandmarks()
-    .withFaceDescriptors()) as unknown as FaceDetectionWithDescriptor[];
+  let detections: FaceDetectionWithDescriptor[] = [];
+
+  for (const inputSize of DETECTOR_INPUT_SIZES) {
+    detections = (await faceApi
+      .detectAllFaces(video, detectorOptions(faceApi, inputSize))
+      .withFaceLandmarks()
+      .withFaceDescriptors()) as unknown as FaceDetectionWithDescriptor[];
+
+    if (detections.length > 0) {
+      break;
+    }
+  }
 
   if (detections.length === 0) {
     throw new Error("No face detected. Make sure your face is centered in view.");

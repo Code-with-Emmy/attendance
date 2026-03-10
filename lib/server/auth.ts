@@ -1,6 +1,7 @@
 import { Role, type User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ApiError } from "@/lib/server/errors";
+import { rethrowAsDatabaseUnavailable } from "@/lib/server/prisma-availability";
 import { getTrustedRequestIp } from "@/lib/server/request-ip";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
@@ -66,85 +67,87 @@ function getClientIp(req: Request) {
 }
 
 export async function upsertAppUser(identity: AppUserIdentity) {
-  const { id, email, name } = identity;
-  const emailLower = email.toLowerCase();
+  try {
+    const { id, email, name } = identity;
+    const emailLower = email.toLowerCase();
 
-  // 1. Check Database Whitelist
-  const whitelistEntry = await prisma.systemAdminWhitelist.findUnique({
-    where: { email: emailLower },
-  });
-
-  // 2. Check Environment Fallbacks (Bootstrap)
-  const adminEmails = getAdminEmails();
-  const masterAdminEmails = getMasterAdminEmails();
-  const isEnvMaster = masterAdminEmails.has(emailLower);
-  const isEnvAdmin = adminEmails.has(emailLower);
-
-  // Determine the highest whitelested role
-  let bootstrapRole: Role | null = null;
-  if (whitelistEntry) {
-    bootstrapRole = whitelistEntry.role;
-  } else if (isEnvMaster) {
-    bootstrapRole = Role.MASTER_ADMIN;
-  } else if (isEnvAdmin) {
-    bootstrapRole = Role.ADMIN;
-  }
-
-  const existing = await prisma.user.findUnique({ where: { id } });
-
-  if (!existing) {
-    const defaultOrg = await prisma.organization.findFirst({
-      where: { slug: "default" },
-      select: { id: true },
+    const whitelistEntry = await prisma.systemAdminWhitelist.findUnique({
+      where: { email: emailLower },
     });
 
-    return prisma.user.create({
+    const adminEmails = getAdminEmails();
+    const masterAdminEmails = getMasterAdminEmails();
+    const isEnvMaster = masterAdminEmails.has(emailLower);
+    const isEnvAdmin = adminEmails.has(emailLower);
+
+    let bootstrapRole: Role | null = null;
+    if (whitelistEntry) {
+      bootstrapRole = whitelistEntry.role;
+    } else if (isEnvMaster) {
+      bootstrapRole = Role.MASTER_ADMIN;
+    } else if (isEnvAdmin) {
+      bootstrapRole = Role.ADMIN;
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+
+    if (!existing) {
+      const defaultOrg = await prisma.organization.findFirst({
+        where: { slug: "default" },
+        select: { id: true },
+      });
+
+      return prisma.user.create({
+        data: {
+          id,
+          email,
+          name,
+          role: bootstrapRole || Role.USER,
+          organizationId: defaultOrg?.id,
+        },
+      });
+    }
+
+    const currentRole = existing.role;
+    let nextRole = currentRole;
+
+    if (whitelistEntry) {
+      nextRole = whitelistEntry.role;
+    } else if (isEnvMaster) {
+      nextRole = Role.MASTER_ADMIN;
+    } else if (isEnvAdmin && currentRole !== Role.MASTER_ADMIN) {
+      nextRole = Role.ADMIN;
+    } else if (
+      currentRole === Role.ADMIN ||
+      currentRole === Role.MASTER_ADMIN
+    ) {
+      nextRole = Role.USER;
+    }
+
+    const nextName = existing.name ?? name;
+    const needsUpdate =
+      existing.email !== email ||
+      existing.name !== nextName ||
+      existing.role !== nextRole;
+
+    if (!needsUpdate) {
+      return existing;
+    }
+
+    return prisma.user.update({
+      where: { id },
       data: {
-        id,
         email,
-        name,
-        role: bootstrapRole || Role.USER,
-        organizationId: defaultOrg?.id,
+        name: nextName,
+        role: nextRole,
       },
     });
+  } catch (error) {
+    rethrowAsDatabaseUnavailable(
+      error,
+      "Database is unavailable. Sign-in succeeded, but app data cannot load until the database connection is restored.",
+    );
   }
-
-  const currentRole = existing.role;
-  let nextRole = currentRole;
-
-  // Only elevate roles via bootstrap/whitelist, never demote a manually assigned role
-  // unless the whitelist explicitly says so (whitelist takes precedence)
-  if (whitelistEntry) {
-    nextRole = whitelistEntry.role;
-  } else if (isEnvMaster) {
-    nextRole = Role.MASTER_ADMIN;
-  } else if (isEnvAdmin && currentRole !== Role.MASTER_ADMIN) {
-    nextRole = Role.ADMIN;
-  } else if (
-    currentRole === Role.ADMIN ||
-    currentRole === Role.MASTER_ADMIN
-  ) {
-    nextRole = Role.USER;
-  }
-
-  const nextName = existing.name ?? name;
-  const needsUpdate =
-    existing.email !== email ||
-    existing.name !== nextName ||
-    existing.role !== nextRole;
-
-  if (!needsUpdate) {
-    return existing;
-  }
-
-  return prisma.user.update({
-    where: { id },
-    data: {
-      email,
-      name: nextName,
-      role: nextRole,
-    },
-  });
 }
 
 export async function requireAuth(req: Request): Promise<AuthContext> {
@@ -165,27 +168,35 @@ export async function requireAuth(req: Request): Promise<AuthContext> {
   }
 
   const name = getDisplayName(data.user.email, data.user.user_metadata?.name ?? data.user.user_metadata?.full_name);
-  const dbUser = await upsertAppUser({
-    id: data.user.id,
-    email: data.user.email,
-    name,
-  });
+  try {
+    const dbUser = await upsertAppUser({
+      id: data.user.id,
+      email: data.user.email,
+      name,
+    });
 
-  const organizationId = dbUser.role === Role.MASTER_ADMIN ? dbUser.organizationId : requireOrg(dbUser);
-  const organization = organizationId
-    ? await prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: { name: true },
-      })
-    : null;
+    const organizationId =
+      dbUser.role === Role.MASTER_ADMIN ? dbUser.organizationId : requireOrg(dbUser);
+    const organization = organizationId
+      ? await prisma.organization.findUnique({
+          where: { id: organizationId },
+          select: { name: true },
+        })
+      : null;
 
-  return {
-    dbUser,
-    organizationId: organizationId || "",
-    organizationName: organization?.name ?? "Platform Management",
-    ip: getClientIp(req),
-    accessToken: token,
-  };
+    return {
+      dbUser,
+      organizationId: organizationId || "",
+      organizationName: organization?.name ?? "Platform Management",
+      ip: getClientIp(req),
+      accessToken: token,
+    };
+  } catch (error) {
+    rethrowAsDatabaseUnavailable(
+      error,
+      "Database is unavailable. Authenticated app features require a live database connection.",
+    );
+  }
 }
 
 export type MasterAuthContext = {
@@ -212,19 +223,26 @@ export async function requireMasterAdminAuth(req: Request): Promise<MasterAuthCo
   }
 
   const name = getDisplayName(data.user.email, data.user.user_metadata?.name ?? data.user.user_metadata?.full_name);
-  const dbUser = await upsertAppUser({
-    id: data.user.id,
-    email: data.user.email,
-    name,
-  });
+  try {
+    const dbUser = await upsertAppUser({
+      id: data.user.id,
+      email: data.user.email,
+      name,
+    });
 
-  requireMasterAdmin(dbUser);
+    requireMasterAdmin(dbUser);
 
-  return {
-    dbUser,
-    ip: getClientIp(req),
-    accessToken: token,
-  };
+    return {
+      dbUser,
+      ip: getClientIp(req),
+      accessToken: token,
+    };
+  } catch (error) {
+    rethrowAsDatabaseUnavailable(
+      error,
+      "Database is unavailable. Master admin features require a live database connection.",
+    );
+  }
 }
 
 export function requireAdmin(user: User) {

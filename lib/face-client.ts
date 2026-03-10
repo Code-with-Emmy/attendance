@@ -1,4 +1,7 @@
-import { EMBEDDING_DIMENSION } from "@/lib/config";
+import {
+  EMBEDDING_DIMENSION,
+  FACE_DETECTOR_SCORE_THRESHOLD,
+} from "@/lib/config";
 
 export type FaceApiModule = typeof import("face-api.js");
 
@@ -38,7 +41,7 @@ async function getFaceApi() {
 function detectorOptions(faceApi: FaceApiModule) {
   return new faceApi.TinyFaceDetectorOptions({
     inputSize: 416,
-    scoreThreshold: 0.65,
+    scoreThreshold: FACE_DETECTOR_SCORE_THRESHOLD,
   });
 }
 
@@ -65,14 +68,14 @@ export function isFaceWellPositioned(
   const centerY = (y + height / 2) / videoHeight;
 
   return (
-    score >= 0.72 &&
-    widthRatio >= 0.18 &&
-    heightRatio >= 0.28 &&
-    areaRatio >= 0.07 &&
-    centerX >= 0.24 &&
-    centerX <= 0.76 &&
-    centerY >= 0.2 &&
-    centerY <= 0.8
+    score >= 0.78 &&
+    widthRatio >= 0.2 &&
+    heightRatio >= 0.3 &&
+    areaRatio >= 0.08 &&
+    centerX >= 0.28 &&
+    centerX <= 0.72 &&
+    centerY >= 0.22 &&
+    centerY <= 0.78
   );
 }
 

@@ -39,7 +39,9 @@ import { toUserFacingFaceError } from "@/lib/client/face-errors";
 import { useAttendanceSync } from "@/lib/client/hooks/use-attendance-sync";
 import { SyncDB } from "@/lib/client/sync-manager";
 import {
+  FACE_DETECTOR_SCORE_THRESHOLD,
   KIOSK_FACE_DETECTED_DELAY_MS,
+  KIOSK_PREMIUM_STABLE_ALIGNMENT_FRAMES,
   KIOSK_RESULT_DISPLAY_MS,
 } from "@/lib/config";
 import {
@@ -541,6 +543,7 @@ export function AttendanceKioskScreen() {
   const speechEnabledRef = useRef(false);
   const spokenPromptRef = useRef("");
   const alignedFaceSinceRef = useRef<number | null>(null);
+  const stableAlignedFramesRef = useRef(0);
   const voiceToggleId = useId();
   const voiceGenderId = useId();
 
@@ -673,6 +676,7 @@ export function AttendanceKioskScreen() {
       setActiveStepIndex(0);
       setSuccessCard(null);
       alignedFaceSinceRef.current = null;
+      stableAlignedFramesRef.current = 0;
       setHoldCountdownStartedAt(null);
       setFaceDetectedCountdown(null);
       setSelectedAction("AUTO");
@@ -832,6 +836,7 @@ export function AttendanceKioskScreen() {
           requireClearFrameRef.current = false;
           processingRef.current = false;
           alignedFaceSinceRef.current = null;
+          stableAlignedFramesRef.current = 0;
           setHoldCountdownStartedAt(null);
           setFaceDetectedCountdown(null);
           setAwaitingClearFrame(false);
@@ -843,6 +848,7 @@ export function AttendanceKioskScreen() {
 
       if (detections.length === 0) {
         alignedFaceSinceRef.current = null;
+        stableAlignedFramesRef.current = 0;
         setHoldCountdownStartedAt(null);
         setFaceDetectedCountdown(null);
         if (!processingRef.current && phase !== "idle") {
@@ -861,6 +867,7 @@ export function AttendanceKioskScreen() {
 
       if (!isFaceWellPositioned(videoRef.current, detections[0])) {
         alignedFaceSinceRef.current = null;
+        stableAlignedFramesRef.current = 0;
         setHoldCountdownStartedAt(null);
         setFaceDetectedCountdown(null);
         setPhase("idle");
@@ -872,6 +879,35 @@ export function AttendanceKioskScreen() {
             "Face detected. Make sure your face is positioned well to start the challenge.",
           helper:
             "Move closer, center your full face inside the frame, and hold steady. The kiosk will start automatically once alignment is good.",
+          meta: [
+            networkOnline ? "Network online" : "Network offline",
+            selectedAction === "AUTO"
+              ? "Auto mode"
+              : `Manual ${requestedActionLabel(selectedAction)}`,
+            selectedChallenge === "AUTO"
+              ? "Random liveness challenge"
+              : `Manual ${challengeButtonLabel(selectedChallenge)}`,
+          ],
+        });
+        return;
+      }
+
+      stableAlignedFramesRef.current += 1;
+
+      if (
+        stableAlignedFramesRef.current < KIOSK_PREMIUM_STABLE_ALIGNMENT_FRAMES
+      ) {
+        alignedFaceSinceRef.current = null;
+        setHoldCountdownStartedAt(null);
+        setFaceDetectedCountdown(null);
+        setPhase("idle");
+        setStatus({
+          tone: "idle",
+          eyebrow: "Premium Alignment Check",
+          title: "Hold steady for strict verification",
+          detail:
+            "Face detected. Keep your face still while the kiosk confirms premium alignment before starting the challenge.",
+          helper: `Stable face confirmation ${stableAlignedFramesRef.current}/${KIOSK_PREMIUM_STABLE_ALIGNMENT_FRAMES}. Detection score must stay above ${FACE_DETECTOR_SCORE_THRESHOLD.toFixed(2)}.`,
           meta: [
             networkOnline ? "Network online" : "Network offline",
             selectedAction === "AUTO"
@@ -914,6 +950,7 @@ export function AttendanceKioskScreen() {
 
       processingRef.current = true;
       alignedFaceSinceRef.current = null;
+      stableAlignedFramesRef.current = 0;
       setHoldCountdownStartedAt(null);
       setFaceDetectedCountdown(null);
       const nextChallenge =
@@ -1134,6 +1171,7 @@ export function AttendanceKioskScreen() {
           setAwaitingClearFrame(false);
         }
         alignedFaceSinceRef.current = null;
+        stableAlignedFramesRef.current = 0;
         setHoldCountdownStartedAt(null);
         setFaceDetectedCountdown(null);
         processingRef.current = false;
@@ -1453,6 +1491,10 @@ export function AttendanceKioskScreen() {
       return "Face detected. Hold still while the kiosk starts the challenge.";
     }
 
+    if (status.eyebrow === "Premium Alignment Check") {
+      return `${status.title}. ${status.detail}`;
+    }
+
     if (status.eyebrow === "Face Detected") {
       return `${status.title}. ${status.detail}`;
     }
@@ -1603,6 +1645,8 @@ export function AttendanceKioskScreen() {
               ? "Attendance needs review or the kiosk requires network recovery."
                 : phase === "error"
                   ? "Verification did not complete. Clear the frame and try again."
+                  : status.eyebrow === "Premium Alignment Check"
+                    ? `${status.title}. ${status.detail}`
                   : status.eyebrow === "Face Detected"
                     ? `${status.title}. ${status.detail}`
                 : awaitingClearFrame

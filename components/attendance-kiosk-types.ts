@@ -71,6 +71,7 @@ export type KioskRecentActivityItem = {
 export type KioskClockResponse = {
   success: boolean;
   alreadyDone?: boolean;
+  manualVerification?: boolean;
   employee: {
     id: string;
     name: string;

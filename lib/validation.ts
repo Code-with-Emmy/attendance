@@ -43,6 +43,13 @@ export const verifyFaceSchema = z.object({
   embedding: embeddingSchema,
 });
 
+export const kioskManualVerificationSchema = z.object({
+  fullName: z.string().trim().min(2).max(100),
+  workEmail: z.string().trim().email().max(255).transform((value) => value.toLowerCase()),
+  reason: z.string().trim().min(5).max(300),
+  type: z.enum(["CLOCK_IN", "CLOCK_OUT", "BREAK_START", "BREAK_END"]),
+});
+
 export const clockAttendanceSchema = z.object({
   type: z.enum(["CLOCK_IN", "CLOCK_OUT"]),
   distance: z.number().min(0).max(3),

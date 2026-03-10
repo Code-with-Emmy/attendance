@@ -18,6 +18,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { KioskHeader } from "@/components/KioskHeader";
 import { LivenessChallengeSelector } from "@/components/LivenessChallengeSelector";
 import { LivenessPrompt } from "@/components/LivenessPrompt";
+import { ManualAttendanceVerification } from "@/components/ManualAttendanceVerification";
 import { RecentActivity } from "@/components/RecentActivity";
 import { ScannerFrame } from "@/components/ScannerFrame";
 import { StatusPanel } from "@/components/StatusPanel";
@@ -90,6 +91,17 @@ function formatShortTime(timestamp: string) {
 }
 
 type VoiceGenderPreference = "female" | "male";
+type ManualAttendanceForm = {
+  fullName: string;
+  workEmail: string;
+  reason: string;
+};
+
+const INITIAL_MANUAL_ATTENDANCE_FORM: ManualAttendanceForm = {
+  fullName: "",
+  workEmail: "",
+  reason: "",
+};
 
 function pickPreferredVoice(
   voices: SpeechSynthesisVoice[],
@@ -534,6 +546,12 @@ export function AttendanceKioskScreen() {
   const [faceDetectedCountdown, setFaceDetectedCountdown] = useState<
     number | null
   >(null);
+  const [manualVerificationOpen, setManualVerificationOpen] = useState(false);
+  const [manualAttendanceForm, setManualAttendanceForm] = useState<ManualAttendanceForm>(
+    INITIAL_MANUAL_ATTENDANCE_FORM,
+  );
+  const [manualVerificationError, setManualVerificationError] = useState("");
+  const [manualSubmitting, setManualSubmitting] = useState(false);
 
   const processingRef = useRef(false);
   const requireClearFrameRef = useRef(false);
@@ -822,6 +840,8 @@ export function AttendanceKioskScreen() {
       !ready ||
       !modelsReady ||
       isSetup ||
+      manualVerificationOpen ||
+      manualSubmitting ||
       processingRef.current ||
       cameraError
     ) {
@@ -1270,8 +1290,39 @@ export function AttendanceKioskScreen() {
       return;
     }
 
+    if (manualVerificationOpen) {
+      setStatus({
+        tone: "idle",
+        eyebrow: "Manual Review Open",
+        title: "Manual verification ready",
+        detail:
+          "Live biometric scanning is paused while manual attendance verification is open.",
+        helper:
+          selectedAction === "AUTO"
+            ? "Choose a manual attendance action, then enter the employee's exact details."
+            : `Manual ${requestedActionLabel(selectedAction)} review is ready. Enter the employee's exact details to continue.`,
+        meta: [
+          networkOnline ? "Network online" : "Network offline",
+          selectedAction === "AUTO"
+            ? "Manual action required"
+            : `Manual ${requestedActionLabel(selectedAction)}`,
+          "Admin review flag enabled",
+        ],
+      });
+      return;
+    }
+
     setStatus(idleStatus);
-  }, [cameraError, idleStatus, isSetup, phase]);
+  }, [
+    cameraError,
+    idleStatus,
+    isSetup,
+    manualVerificationOpen,
+    networkOnline,
+    phase,
+    processingRef,
+    selectedAction,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -1498,6 +1549,12 @@ export function AttendanceKioskScreen() {
       return "Face detected. Hold still while the kiosk starts the challenge.";
     }
 
+    if (manualVerificationOpen) {
+      return selectedAction === "AUTO"
+        ? "Manual verification open. Choose a manual attendance action, then enter the employee's exact full name, work email, and failure reason."
+        : `Manual ${requestedActionLabel(selectedAction).toLowerCase()} verification open. Enter the employee's exact full name, work email, and failure reason.`;
+    }
+
     if (status.eyebrow === "Premium Alignment Check") {
       return `${status.title}. ${status.detail}`;
     }
@@ -1524,6 +1581,7 @@ export function AttendanceKioskScreen() {
     cameraError,
     holdCountdownStartedAt,
     isSetup,
+    manualVerificationOpen,
     phase,
     selectedAction,
     selectedChallenge,
@@ -1639,6 +1697,8 @@ export function AttendanceKioskScreen() {
     ? "Activate this kiosk with a valid device token to enable secure attendance."
     : cameraError
       ? "Restore webcam access to resume live facial verification."
+      : manualVerificationOpen
+        ? "Manual verification is open. Live facial scanning is paused until this review is closed."
       : phase === "liveness"
         ? (livenessSteps[activeStepIndex]?.instruction ??
           "Follow the active liveness prompt.")
@@ -1705,6 +1765,138 @@ export function AttendanceKioskScreen() {
       setIsSetup(true);
     } finally {
       setIsActivating(false);
+    }
+  }
+
+  function handleManualVerificationChange<K extends keyof ManualAttendanceForm>(
+    key: K,
+    value: ManualAttendanceForm[K],
+  ) {
+    setManualAttendanceForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function handleManualVerificationToggle() {
+    setManualVerificationOpen((current) => !current);
+    setManualVerificationError("");
+    alignedFaceSinceRef.current = null;
+    stableAlignedFramesRef.current = 0;
+    setHoldCountdownStartedAt(null);
+    setFaceDetectedCountdown(null);
+    if (requireClearFrameRef.current) {
+      requireClearFrameRef.current = false;
+      setAwaitingClearFrame(false);
+    }
+    processingRef.current = false;
+    setPhase("idle");
+  }
+
+  async function handleManualVerificationSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (selectedAction === "AUTO") {
+      setManualVerificationError(
+        "Choose a manual attendance action before using manual verification.",
+      );
+      return;
+    }
+
+    setManualSubmitting(true);
+    setManualVerificationError("");
+    processingRef.current = true;
+
+    try {
+      const result = await apiFetch<KioskClockResponse>("/api/kiosk/manual", {
+        method: "POST",
+        requireAuth: false,
+        body: {
+          fullName: manualAttendanceForm.fullName,
+          workEmail: manualAttendanceForm.workEmail,
+          reason: manualAttendanceForm.reason,
+          type: selectedAction,
+        },
+      });
+      const activityItem = mapClockResponse(result);
+
+      requireClearFrameRef.current = true;
+      setManualVerificationOpen(false);
+      setManualAttendanceForm(INITIAL_MANUAL_ATTENDANCE_FORM);
+      setPhase("warning");
+      setSuccessCard(null);
+      startTransition(() => {
+        setActivity((current) =>
+          [
+            activityItem,
+            ...current.filter((item) => item.id !== activityItem.id),
+          ].slice(0, 15),
+        );
+      });
+      setStatus({
+        tone: "warning",
+        eyebrow: "Manual Verification Recorded",
+        title: result.entry.message ?? "Manual review recorded",
+        detail: `${result.employee.name} was recorded through manual verification and flagged for admin review.`,
+        helper: `Recorded at ${formatTime(new Date(result.entry.timestamp))}.`,
+        meta: [
+          networkOnline ? "Synced live" : "Connection unstable",
+          `Manual ${requestedActionLabel(selectedAction)}`,
+          "Admin review flag enabled",
+        ],
+      });
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+      resetTimerRef.current = window.setTimeout(() => {
+        processingRef.current = false;
+        requireClearFrameRef.current = true;
+        setAwaitingClearFrame(true);
+        setPhase("idle");
+        setActiveStepIndex(0);
+        setSuccessCard(null);
+        alignedFaceSinceRef.current = null;
+        stableAlignedFramesRef.current = 0;
+        setHoldCountdownStartedAt(null);
+        setFaceDetectedCountdown(null);
+        setSelectedAction("AUTO");
+        setStatus(
+          buildIdleStatus({
+            action: "AUTO",
+            livenessSelection: selectedChallenge,
+            awaitingClearFrame: true,
+            modelsReady,
+            networkOnline,
+            unsyncedCount,
+          }),
+        );
+      }, KIOSK_RESULT_DISPLAY_MS);
+      await loadHistory().catch(() => undefined);
+    } catch (error) {
+      processingRef.current = false;
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Manual verification could not be recorded.";
+      setManualVerificationError(message);
+      setPhase("idle");
+      setStatus({
+        tone: "warning",
+        eyebrow: "Manual Verification Failed",
+        title: "Manual review could not be recorded",
+        detail: message,
+        helper:
+          "Correct the employee details or restore connectivity before trying again.",
+        meta: [
+          networkOnline ? "Network online" : "Network offline",
+          `Manual ${requestedActionLabel(selectedAction)}`,
+          "No attendance record created",
+        ],
+      });
+    } finally {
+      setManualSubmitting(false);
     }
   }
 
@@ -1912,7 +2104,23 @@ export function AttendanceKioskScreen() {
             <LivenessChallengeSelector
               selectedChallenge={selectedChallenge}
               onSelect={setSelectedChallenge}
+              disabled={
+                phase === "liveness" ||
+                phase === "processing" ||
+                manualSubmitting
+              }
+            />
+
+            <ManualAttendanceVerification
+              open={manualVerificationOpen}
               disabled={phase === "liveness" || phase === "processing"}
+              submitting={manualSubmitting}
+              selectedAction={selectedAction}
+              error={manualVerificationError}
+              form={manualAttendanceForm}
+              onToggle={handleManualVerificationToggle}
+              onChange={handleManualVerificationChange}
+              onSubmit={handleManualVerificationSubmit}
             />
 
             <div>

@@ -1274,20 +1274,27 @@ export function AttendanceKioskScreen() {
   }, [cameraError, idleStatus, isSetup, phase]);
 
   useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("kiosk_token")
-        : null;
+    let active = true;
 
-    if (!token) {
-      setIsSetup(true);
-      setSetupError("");
-      return;
-    }
+    void loadHistory()
+      .then(() => {
+        if (!active) {
+          return;
+        }
+        setIsSetup(false);
+        void updateCount();
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setIsSetup(true);
+        setSetupError("");
+      });
 
-    setIsSetup(false);
-    void loadHistory(token).catch(() => undefined);
-    void updateCount();
+    return () => {
+      active = false;
+    };
   }, [loadHistory, updateCount]);
 
   useEffect(() => {
@@ -1671,8 +1678,12 @@ export function AttendanceKioskScreen() {
     setSetupError("");
 
     try {
-      await loadHistory(setupToken.trim());
-      window.localStorage.setItem("kiosk_token", setupToken.trim());
+      await apiFetch<{ success: true }>("/api/kiosk/session", {
+        method: "POST",
+        requireAuth: false,
+        body: { token: setupToken.trim() },
+      });
+      await loadHistory();
       setIsSetup(false);
       setSetupToken("");
       alignedFaceSinceRef.current = null;

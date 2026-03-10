@@ -1,10 +1,12 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
+import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireMasterAdminAuth } from "@/lib/server/auth";
 
 export async function GET(req: Request) {
   try {
-    const auth = await requireMasterAdminAuth(req);
+    await requireMasterAdminAuth(req);
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("q") || "";
 
@@ -34,7 +36,7 @@ export async function GET(req: Request) {
     }));
 
     return NextResponse.json(formatted);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 }
@@ -47,6 +49,10 @@ export async function PUT(req: Request) {
 
     if (!id || !role) {
       return NextResponse.json({ error: "Missing ID or role" }, { status: 400 });
+    }
+
+    if (!Object.values(Role).includes(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
     // Safety check: Cannot demote your own account
@@ -63,6 +69,18 @@ export async function PUT(req: Request) {
       include: { organization: true },
     });
 
+    if (role === Role.ADMIN || role === Role.MASTER_ADMIN) {
+      await prisma.systemAdminWhitelist.upsert({
+        where: { email: updated.email.toLowerCase() },
+        update: { role },
+        create: { email: updated.email.toLowerCase(), role },
+      });
+    } else {
+      await prisma.systemAdminWhitelist.deleteMany({
+        where: { email: updated.email.toLowerCase() },
+      });
+    }
+
     return NextResponse.json({
       id: updated.id,
       name: updated.name ?? "Unknown",
@@ -71,7 +89,7 @@ export async function PUT(req: Request) {
       org: updated.organization?.name ?? "-",
       status: "Active",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Action failed" }, { status: 500 });
   }
 }
@@ -84,6 +102,10 @@ export async function POST(req: Request) {
 
     if (!email || !role) {
       return NextResponse.json({ error: "Email and role are required" }, { status: 400 });
+    }
+
+    if (!Object.values(Role).includes(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
     // Check if user already exists
@@ -102,8 +124,16 @@ export async function POST(req: Request) {
       },
     });
 
+    if (role === Role.ADMIN || role === Role.MASTER_ADMIN) {
+      await prisma.systemAdminWhitelist.upsert({
+        where: { email: email.toLowerCase() },
+        update: { role },
+        create: { email: email.toLowerCase(), role },
+      });
+    }
+
     return NextResponse.json(created);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
   }
 }

@@ -9,18 +9,12 @@ import {
   logInfo,
   withRequestId,
 } from "@/lib/server/observability";
+import { getTrustedRequestIp } from "@/lib/server/request-ip";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { requireDevice } from "@/lib/server/device-auth";
 
 function getClientIp(req: Request) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const [first] = forwarded.split(",");
-    if (first?.trim()) {
-      return first.trim();
-    }
-  }
-  return req.headers.get("x-real-ip") || "unknown";
+  return getTrustedRequestIp(req);
 }
 
 export async function GET(req: Request) {
@@ -33,8 +27,8 @@ export async function GET(req: Request) {
     enforceRateLimit(
       "kiosk-history",
       ip,
-      RATE_LIMIT_CONFIG.verify.limit,
-      RATE_LIMIT_CONFIG.verify.windowMs,
+      RATE_LIMIT_CONFIG.history.limit,
+      RATE_LIMIT_CONFIG.history.windowMs,
     );
 
     const rows = await prisma.attendance.findMany({

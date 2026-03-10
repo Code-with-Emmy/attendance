@@ -1,6 +1,7 @@
 import { Role, type User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ApiError } from "@/lib/server/errors";
+import { getTrustedRequestIp } from "@/lib/server/request-ip";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 export type AuthContext = {
@@ -61,15 +62,7 @@ export function getDisplayName(rawEmail: string, metadataName: unknown) {
 }
 
 function getClientIp(req: Request) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const [first] = forwarded.split(",");
-    if (first?.trim()) {
-      return first.trim();
-    }
-  }
-
-  return req.headers.get("x-real-ip") || "unknown";
+  return getTrustedRequestIp(req);
 }
 
 export async function upsertAppUser(identity: AppUserIdentity) {
@@ -127,6 +120,11 @@ export async function upsertAppUser(identity: AppUserIdentity) {
     nextRole = Role.MASTER_ADMIN;
   } else if (isEnvAdmin && currentRole !== Role.MASTER_ADMIN) {
     nextRole = Role.ADMIN;
+  } else if (
+    currentRole === Role.ADMIN ||
+    currentRole === Role.MASTER_ADMIN
+  ) {
+    nextRole = Role.USER;
   }
 
   const nextName = existing.name ?? name;

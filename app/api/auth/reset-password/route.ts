@@ -42,6 +42,19 @@ export async function POST(request: Request) {
       throw new ApiError(400, "This reset link is invalid or has expired.");
     }
 
+    const claimResult = await prisma.passwordResetToken.updateMany({
+      where: {
+        id: resetToken.id,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      data: { usedAt: new Date() },
+    });
+
+    if (claimResult.count !== 1) {
+      throw new ApiError(400, "This reset link is invalid or has expired.");
+    }
+
     const supabase = getSupabaseServiceClient();
     const { error } = await supabase.auth.admin.updateUserById(resetToken.user.id, {
       password: parsed.password,
@@ -51,19 +64,13 @@ export async function POST(request: Request) {
       throw new ApiError(400, error.message);
     }
 
-    await prisma.$transaction([
-      prisma.passwordResetToken.update({
-        where: { id: resetToken.id },
-        data: { usedAt: new Date() },
-      }),
-      prisma.passwordResetToken.updateMany({
-        where: {
-          userId: resetToken.user.id,
-          usedAt: null,
-        },
-        data: { usedAt: new Date() },
-      }),
-    ]);
+    await prisma.passwordResetToken.updateMany({
+      where: {
+        userId: resetToken.user.id,
+        usedAt: null,
+      },
+      data: { usedAt: new Date() },
+    });
 
     return NextResponse.json({
       success: true,

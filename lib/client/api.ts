@@ -1,7 +1,11 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type FetchOptions = Omit<RequestInit, "body"> & {
-  body?: any;
+  body?:
+    | BodyInit
+    | Record<string, unknown>
+    | unknown[]
+    | null;
   accessToken?: string;
   kioskToken?: string;
   requireAuth?: boolean;
@@ -27,11 +31,6 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   const headers = new Headers(options.headers);
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const kioskToken = options.kioskToken || (typeof window !== "undefined" ? localStorage.getItem("kiosk_token") : null);
-  if (kioskToken) {
-    headers.set("x-kiosk-token", kioskToken);
   }
 
   let body = options.body;

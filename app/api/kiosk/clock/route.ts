@@ -10,20 +10,14 @@ import {
   logInfo,
   withRequestId,
 } from "@/lib/server/observability";
+import { getTrustedRequestIp } from "@/lib/server/request-ip";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { requireDevice } from "@/lib/server/device-auth";
 import { verifyFaceSchema } from "@/lib/validation";
 import { processAttendanceEvent } from "@/lib/server/attendance-service";
 
 function getClientIp(req: Request) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const [first] = forwarded.split(",");
-    if (first?.trim()) {
-      return first.trim();
-    }
-  }
-  return req.headers.get("x-real-ip") || "unknown";
+  return getTrustedRequestIp(req);
 }
 
 type KioskMatchRow = {
@@ -53,6 +47,9 @@ export async function POST(req: Request) {
     const type = body?.type as AttendanceType | undefined;
     if (!type) {
       throw new ApiError(400, "Missing clock type.");
+    }
+    if (!Object.values(AttendanceType).includes(type)) {
+      throw new ApiError(400, "Invalid clock type.");
     }
 
     const parsed = verifyFaceSchema.parse({ embedding: body?.embedding });

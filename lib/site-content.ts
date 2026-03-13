@@ -40,8 +40,8 @@ export type SitePlan = {
 export const siteNavigation = [
   { label: "Product", href: "/#product" },
   { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Security", href: "/security" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "Security", href: "/#security" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -50,6 +50,12 @@ export const trustBullets = [
   "Real-time attendance tracking",
   "Payroll-ready reports",
 ];
+
+export const heroStats = [
+  { label: "Verification", value: "98.4%", detail: "high-confidence match rate" },
+  { label: "Response Time", value: "< 2s", detail: "from scan to attendance event" },
+  { label: "Exports", value: "Payroll", detail: "ready summaries and reports" },
+] as const;
 
 export const problemPoints = [
   {

@@ -1,0 +1,72 @@
+<svg width="1400" height="1000" viewBox="0 0 1400 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="104" y1="60" x2="1278" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A204D"/>
+      <stop offset="1" stop-color="#021141"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="780" y1="166" x2="1190" y2="784" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102A5E"/>
+      <stop offset="1" stop-color="#071A3A"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FF9835"/>
+      <stop offset="1" stop-color="#D86500"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1144 188) rotate(133.843) scale(340.171 305.99)">
+      <stop stop-color="#E67300" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#E67300" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1400" height="1000" rx="36" fill="url(#bg)"/>
+  <circle cx="1144" cy="188" r="290" fill="url(#glow)"/>
+
+  <g opacity="0.08">
+    <path d="M78 126H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 260H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 394H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 528H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 662H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 796H1322" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M78 930H1322" stroke="#D8C6A8" stroke-width="2"/>
+  </g>
+
+  <rect x="90" y="104" width="12" height="790" fill="url(#orange)"/>
+  <text x="134" y="166" fill="#E67300" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="5">PRODUCT PREVIEW</text>
+  <text x="134" y="266" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="700">Kiosk built for</text>
+  <text x="134" y="356" fill="#FFB15C" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="700">real operations</text>
+  <text x="134" y="426" fill="#D8C6A8" font-family="Arial, Helvetica, sans-serif" font-size="30">Use this in pricing, demo, and product pages to show</text>
+  <text x="134" y="470" fill="#D8C6A8" font-family="Arial, Helvetica, sans-serif" font-size="30">strict verification, manual fallback, and admin visibility.</text>
+
+  <rect x="134" y="550" width="520" height="216" rx="28" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="174" y="606" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">WHY IT SELLS</text>
+  <text x="174" y="664" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Biometric kiosk with</text>
+  <text x="174" y="708" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">strict face verification</text>
+  <text x="174" y="748" fill="#FFCF8E" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Manual fallback, voice prompts, and audit trails</text>
+
+  <rect x="768" y="152" width="470" height="706" rx="38" fill="url(#panel)"/>
+  <rect x="768" y="152" width="12" height="706" fill="url(#orange)"/>
+  <rect x="830" y="220" width="346" height="472" rx="28" fill="#061942" stroke="#E67300" stroke-opacity="0.18" stroke-width="2"/>
+  <rect x="874" y="268" width="258" height="376" rx="24" fill="#021141"/>
+
+  <path d="M904 298H972" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1034 298H1102" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M904 614H972" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1034 614H1102" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M904 298V366" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1102 298V366" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M904 546V614" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1102 546V614" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="1003" cy="452" r="78" fill="#E67300" fill-opacity="0.10" stroke="#E67300" stroke-opacity="0.26" stroke-width="2"/>
+  <circle cx="1003" cy="428" r="34" fill="#F7E6CF"/>
+  <path d="M932 554C949 510 972 490 1003 490C1034 490 1057 510 1074 554" fill="#F7E6CF"/>
+  <rect x="904" y="470" width="198" height="3" fill="#FFB15C" fill-opacity="0.72"/>
+
+  <rect x="830" y="726" width="154" height="82" rx="20" fill="#0B214B"/>
+  <text x="856" y="756" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="3">MATCH</text>
+  <text x="856" y="794" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">98.4%</text>
+
+  <rect x="1002" y="726" width="174" height="82" rx="20" fill="#0B214B"/>
+  <text x="1028" y="756" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="3">STATUS</text>
+  <text x="1028" y="794" fill="#FFCF8E" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Verified</text>
+</svg>

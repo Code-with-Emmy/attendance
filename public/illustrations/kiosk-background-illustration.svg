@@ -1,0 +1,85 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="218" y1="102" x2="1348" y2="1084" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A204D"/>
+      <stop offset="1" stop-color="#021141"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(296 198) rotate(43.3362) scale(470.485 454.35)">
+      <stop stop-color="#E67300" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#E67300" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1335 1004) rotate(-129.972) scale(397.624 357.214)">
+      <stop stop-color="#D8C6A8" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#D8C6A8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="scanner" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FF9835"/>
+      <stop offset="1" stop-color="#D86500"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <circle cx="296" cy="198" r="376" fill="url(#glow1)"/>
+  <circle cx="1335" cy="1004" r="320" fill="url(#glow2)"/>
+
+  <g opacity="0.08">
+    <path d="M92 142H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 286H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 430H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 574H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 718H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 862H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M92 1006H1508" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M232 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M440 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M648 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M856 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M1064 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+    <path d="M1272 72V1128" stroke="#D8C6A8" stroke-width="2"/>
+  </g>
+
+  <rect x="556" y="182" width="488" height="836" rx="46" fill="#081933" fill-opacity="0.86" stroke="#D8C6A8" stroke-opacity="0.14" stroke-width="2"/>
+  <rect x="556" y="182" width="12" height="836" fill="url(#scanner)"/>
+  <rect x="608" y="252" width="384" height="612" rx="34" fill="#061942" stroke="#E67300" stroke-opacity="0.18" stroke-width="2"/>
+  <rect x="652" y="300" width="296" height="516" rx="28" fill="#021141"/>
+
+  <path d="M688 336H772" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M828 336H912" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M688 780H772" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M828 780H912" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M688 336V420" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M912 336V420" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M688 696V780" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+  <path d="M912 696V780" stroke="#FFB15C" stroke-width="5" stroke-linecap="round"/>
+
+  <rect x="692" y="526" width="216" height="3" fill="#FFB15C" fill-opacity="0.74"/>
+  <circle cx="800" cy="488" r="72" fill="#E67300" fill-opacity="0.10" stroke="#E67300" stroke-opacity="0.28" stroke-width="2"/>
+  <circle cx="800" cy="466" r="34" fill="#F7E6CF"/>
+  <path d="M734 580C750 537 772 520 800 520C828 520 850 537 866 580" fill="#F7E6CF"/>
+
+  <rect x="228" y="282" width="252" height="128" rx="26" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="262" y="326" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">LIVENESS STATUS</text>
+  <text x="262" y="378" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700">Manual Ready</text>
+
+  <rect x="1102" y="252" width="270" height="166" rx="26" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="1136" y="298" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">CURRENT ACTION</text>
+  <text x="1136" y="354" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">Clock In</text>
+  <text x="1136" y="392" fill="#FFCF8E" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Secure start of day</text>
+
+  <rect x="1102" y="466" width="270" height="250" rx="26" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="1136" y="512" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">LIVE METRICS</text>
+  <rect x="1138" y="552" width="198" height="22" rx="11" fill="#0D2A59"/>
+  <rect x="1138" y="552" width="158" height="22" rx="11" fill="url(#scanner)"/>
+  <text x="1138" y="624" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">98.4% match confidence</text>
+  <text x="1138" y="664" fill="#D8C6A8" font-family="Arial, Helvetica, sans-serif" font-size="24">Camera aligned and stable</text>
+
+  <rect x="192" y="794" width="350" height="170" rx="26" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="228" y="840" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">VOICE PROMPT</text>
+  <text x="228" y="896" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Welcome. Follow</text>
+  <text x="228" y="938" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">the challenge.</text>
+
+  <rect x="1052" y="812" width="360" height="156" rx="26" fill="#081933" stroke="#D8C6A8" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="1088" y="858" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">VERIFICATION RULES</text>
+  <text x="1088" y="914" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Centered face only</text>
+  <text x="1088" y="950" fill="#FFCF8E" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Strict identity and liveness checks</text>
+</svg>

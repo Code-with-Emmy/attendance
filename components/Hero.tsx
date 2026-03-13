@@ -1,177 +1,109 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Activity,
-  ArrowRight,
-  Camera,
-  CheckCircle2,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import { siteAssets } from "@/lib/site-assets";
 import { trustBullets } from "@/lib/site-content";
 
 export function Hero() {
   return (
     <section
       id="product"
-      className="site-container grid gap-12 py-18 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24"
+      className="relative overflow-hidden border-b border-white/10 bg-[#020617] pt-16"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-      >
-        <span className="site-pill">
-          <ShieldCheck className="h-4 w-4 text-blue-300" />
-          Trusted biometric attendance for modern teams
-        </span>
+      <div className="absolute inset-0">
+        <Image
+          src={siteAssets.heroBackdrop}
+          alt="Employee using a self-service kiosk in a real workplace environment"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.96)_0%,rgba(2,6,23,0.88)_38%,rgba(2,6,23,0.6)_70%,rgba(2,6,23,0.52)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.24),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.16),transparent_22%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        <h1 className="mt-7 max-w-4xl text-balance text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.94] tracking-[-0.06em] text-white">
-          Face-Verified Attendance for{" "}
-          <span className="highlight-text">Modern Workplaces</span>
-        </h1>
+      <div className="site-container relative grid gap-14 py-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200">
+            <ShieldCheck className="h-4 w-4 text-[#3B82F6]" />
+            Facial recognition attendance with liveness verification
+          </div>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-          Turn any tablet or laptop into a secure biometric kiosk with liveness
-          verification, real-time attendance tracking, and payroll-ready
-          reporting.
-        </p>
+          <h1 className="mt-8 max-w-3xl font-heading text-5xl font-semibold tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
+            Face-Verified Attendance for Modern Workplaces
+          </h1>
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-          <Link href="/demo" className="cta-primary">
-            Book a Demo
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link href="/trial" className="cta-secondary">
-            Start Free Trial
-          </Link>
-        </div>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            Turn any tablet or laptop into a secure biometric attendance kiosk
+            with built-in liveness detection, real-time attendance logs, and
+            payroll-ready reporting.
+          </p>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          {trustBullets.map((item) => (
-            <div
-              key={item}
-              className="site-card-soft rounded-3xl px-4 py-4 text-sm text-slate-300"
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            <Link
+              href="/demo"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#3B82F6] px-6 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(59,130,246,0.35)] transition hover:-translate-y-0.5 hover:bg-[#60A5FA]"
             >
-              <span className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-emerald-400" />
-                <span>{item}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, ease: "easeOut", delay: 0.08 }}
-        className="relative"
-      >
-        <div className="absolute -left-8 top-8 h-36 w-36 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute -right-8 bottom-4 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
-
-        <div className="site-card relative overflow-hidden rounded-[2rem] p-5 shadow-[0_30px_120px_rgba(2,6,23,0.7)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_40%)]" />
-          <div className="relative rounded-[1.6rem] border border-white/8 bg-slate-950/70 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
-                  Attendance kiosk
-                </p>
-                <p className="mt-2 text-xl font-semibold text-white">
-                  Reception scanner
-                </p>
-              </div>
-              <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-                Live
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-[1.5rem] border border-white/8 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.14),transparent_36%),linear-gradient(180deg,rgba(15,23,42,0.9),rgba(2,6,23,0.96))] p-5">
-              <div className="relative flex aspect-[4/5] items-center justify-center rounded-[1.4rem] border border-blue-400/15 bg-slate-950/50">
-                <div className="absolute inset-6 rounded-[1.2rem] border border-dashed border-blue-300/25" />
-                <div className="absolute left-8 top-8 h-10 w-10 border-l-2 border-t-2 border-cyan-300" />
-                <div className="absolute right-8 top-8 h-10 w-10 border-r-2 border-t-2 border-cyan-300" />
-                <div className="absolute bottom-8 left-8 h-10 w-10 border-b-2 border-l-2 border-cyan-300" />
-                <div className="absolute bottom-8 right-8 h-10 w-10 border-b-2 border-r-2 border-cyan-300" />
-                <div className="rounded-[1.4rem] border border-cyan-300/20 bg-cyan-400/10 p-6 shadow-[0_0_60px_rgba(34,211,238,0.15)]">
-                  <Camera className="h-14 w-14 text-cyan-200" />
-                </div>
-                <div className="absolute inset-x-8 top-[22%] h-px bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent" />
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/8 bg-white/5 p-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Match
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-white">98.4%</p>
-                </div>
-                <div className="rounded-2xl border border-white/8 bg-white/5 p-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Liveness
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-emerald-300">
-                    Verified
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/8 bg-white/5 p-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Status
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-blue-200">
-                    Clocked in
-                  </p>
-                </div>
-              </div>
-            </div>
+              Book a Demo
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/trial"
+              className="inline-flex h-12 items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 text-sm font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10"
+            >
+              Start Free Trial
+            </Link>
           </div>
 
-          <div className="relative mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-[1.5rem] border border-white/8 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                Attendance health
-              </p>
-              <div className="mt-4 flex items-end gap-2">
-                {[44, 70, 52, 88, 65, 94, 74].map((value, index) => (
-                  <div
-                    key={value + index}
-                    className="flex-1 rounded-t-full bg-gradient-to-t from-blue-500 to-cyan-300"
-                    style={{ height: `${value}px` }}
-                  />
-                ))}
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            {trustBullets.map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-slate-200 backdrop-blur-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#22C55E]" />
+                  <span>{item}</span>
+                </div>
               </div>
-            </div>
+            ))}
+          </div>
+        </motion.div>
 
-            <div className="rounded-[1.5rem] border border-white/8 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                Live insights
-              </p>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between rounded-2xl bg-slate-950/40 px-3 py-3">
-                  <span className="flex items-center gap-2 text-sm text-slate-300">
-                    <Activity className="h-4 w-4 text-blue-300" />
-                    Active kiosks
-                  </span>
-                  <span className="font-semibold text-white">12</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-slate-950/40 px-3 py-3">
-                  <span className="text-sm text-slate-300">Late arrivals</span>
-                  <span className="font-semibold text-amber-300">3 flagged</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-slate-950/40 px-3 py-3">
-                  <span className="text-sm text-slate-300">Export status</span>
-                  <span className="font-semibold text-emerald-300">
-                    Payroll ready
-                  </span>
-                </div>
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 28, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.55, ease: "easeOut", delay: 0.08 }}
+          className="relative hidden lg:block"
+        >
+          <div className="absolute -left-8 top-10 hidden h-32 w-32 rounded-full bg-[#3B82F6]/20 blur-3xl lg:block" />
+          <div className="absolute -right-6 bottom-8 hidden h-36 w-36 rounded-full bg-[#22C55E]/16 blur-3xl lg:block" />
+
+          <div className="ml-auto w-full max-w-[34rem] rounded-[2rem] border border-white/10 bg-[rgba(15,23,42,0.72)] p-4 shadow-[0_30px_120px_rgba(2,6,23,0.5)] backdrop-blur-xl">
+            <div className="mb-4 flex items-center gap-2 px-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-300/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+            </div>
+            <div className="relative aspect-[16/11] overflow-hidden rounded-[1.4rem] border border-white/10 bg-[#0F172A]">
+              <Image
+                src={siteAssets.heroProduct}
+                alt="AttendanceKiosk product interface"
+                fill
+                className="object-cover"
+              />
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 }

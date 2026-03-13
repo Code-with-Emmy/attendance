@@ -12,21 +12,21 @@ type Props = {
 };
 
 const STATUS_BADGES = {
-  success: "bg-emerald-500/12 text-emerald-200 ring-1 ring-[#22C55E]/18",
-  warning: "bg-amber-500/12 text-amber-200 ring-1 ring-[#F59E0B]/18",
+  success: "bg-[#E67300]/12 text-[#ffe5c2] ring-1 ring-[#E67300]/18",
+  warning: "bg-white/6 text-[#f7e6cf] ring-1 ring-[#d8c6a8]/18",
   error: "bg-red-500/12 text-red-200 ring-1 ring-[#EF4444]/18",
 } as const;
 
 const DIRECTION_STYLES = {
   in: {
-    bg: "border-[#22C55E]/16 bg-emerald-500/12",
-    dot: "bg-[#22C55E]",
-    text: "text-emerald-200",
+    bg: "border-[#E67300]/16 bg-[#E67300]/12",
+    dot: "bg-[#E67300]",
+    text: "text-[#ffe5c2]",
   },
   out: {
-    bg: "border-[#3B82F6]/16 bg-blue-500/12",
-    dot: "bg-[#3B82F6]",
-    text: "text-blue-200",
+    bg: "border-[#d8c6a8]/16 bg-white/6",
+    dot: "bg-[#d8c6a8]",
+    text: "text-[#f7e6cf]",
   },
 } as const;
 
@@ -47,48 +47,47 @@ export function RecentActivity({
         ease: "easeOut",
         delay: 0.05,
       }}
-      className="kiosk-panel kiosk-glow relative flex min-h-72 flex-col overflow-hidden rounded-[1.8rem] border border-white/10 px-3 py-4 sm:min-h-96 sm:px-5 sm:py-5 lg:h-full lg:px-6"
+      className="kiosk-panel kiosk-glow relative flex min-h-72 flex-col overflow-hidden rounded-[1.25rem] border border-[#d8c6a8]/18 px-3 py-4 sm:min-h-96 sm:px-5 sm:py-5 lg:h-full lg:px-6"
     >
-      {/* Top edge highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_10%,rgba(59,130,246,0.20)_50%,transparent_90%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_28%)]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-[#E67300]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(230,115,0,0.1),transparent_28%)]" />
 
       <div className="relative flex h-full flex-col">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3 sm:gap-4 sm:pb-4">
           <div>
-            <div className="flex items-center gap-2 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-slate-400 sm:text-[0.68rem] sm:tracking-[0.34em]">
+            <div className="flex items-center gap-2 text-[0.6rem] font-black uppercase tracking-[0.28em] text-[#E67300] sm:text-[0.68rem] sm:tracking-[0.34em]">
               {/* Animated green dot */}
               <span className="relative flex h-2.5 w-2.5">
                 {!shouldReduceMotion && (
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22C55E] opacity-40" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E67300] opacity-40" />
                 )}
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#22C55E]" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#E67300]" />
               </span>
               <span>Recent Activity</span>
             </div>
             <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-white sm:mt-2 sm:text-2xl">
               Live Clock Feed
             </h2>
-            <p className="mt-1 max-w-sm text-xs text-slate-400 sm:mt-2 sm:text-sm">
+            <p className="mt-1 max-w-sm text-xs text-[#d8c6a8] sm:mt-2 sm:text-sm">
               Real-time employee verification history for this terminal.
             </p>
           </div>
-          <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-300 ring-1 ring-white/10">
+          <span className="border border-[#E67300]/20 bg-[#E67300]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#ffe5c2]">
             {items.length} entries
           </span>
         </div>
 
         {/* Stream status bar */}
-        <div className="mt-3 flex items-center gap-2 rounded-[1.2rem] border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 sm:mt-4 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-white/10 bg-slate-950/40 sm:h-10 sm:w-10">
-            <Radio className="h-4.5 w-4.5 text-[#22D3EE]" aria-hidden="true" />
+        <div className="mt-3 flex items-center gap-2 border border-[#d8c6a8]/14 bg-white/5 px-3 py-2 text-xs text-[#f7e6cf] sm:mt-4 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
+          <div className="flex h-8 w-8 items-center justify-center border border-[#d8c6a8]/14 bg-[#021141] sm:h-10 sm:w-10">
+            <Radio className="h-4.5 w-4.5 text-[#E67300]" aria-hidden="true" />
           </div>
           <div>
             <p className="font-semibold text-white">
               Live update stream active
             </p>
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#d8c6a8]">
               {queueCount > 0
                 ? `${queueCount} queued for sync`
                 : "Kiosk event queue synced"}
@@ -149,16 +148,15 @@ export function RecentActivity({
                         ease: "easeOut",
                         delay: shouldReduceMotion ? 0 : index * 0.03,
                       }}
-                      className="group relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 px-3 py-3 transition-all duration-200 hover:border-blue-400/18 hover:bg-white/8 shadow-[0_18px_40px_rgba(2,6,23,0.28)] sm:px-4 sm:py-4"
+                      className="group relative overflow-hidden border border-[#d8c6a8]/14 bg-white/5 px-3 py-3 transition-all duration-200 hover:border-[#E67300]/18 hover:bg-white/8 shadow-[0_18px_40px_rgba(2,17,65,0.18)] sm:px-4 sm:py-4"
                     >
-                      {/* Subtle hover glow */}
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.04),transparent_50%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,115,0,0.05),transparent_50%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                       <div className="relative flex items-start justify-between gap-3 sm:gap-4">
                         <div className="flex min-w-0 items-start gap-3">
                           {/* Avatar with direction indicator */}
                           <div className="relative">
-                            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.9rem] border border-white/10 bg-slate-950/40 text-xs font-semibold text-white sm:h-11 sm:w-11 sm:text-sm">
+                            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border border-[#d8c6a8]/14 bg-[#021141] text-xs font-semibold text-white sm:h-11 sm:w-11 sm:text-sm">
                               {item.imageUrl ? (
                                 <img
                                   src={item.imageUrl}
@@ -179,7 +177,7 @@ export function RecentActivity({
                             <p className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">
                               {item.employeeName}
                             </p>
-                            <p className="mt-1 truncate text-sm text-slate-500">
+                            <p className="mt-1 truncate text-sm text-[#d8c6a8]">
                               {item.department || "Attendance event"}
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -202,9 +200,9 @@ export function RecentActivity({
                         </div>
 
                         <div className="hidden shrink-0 text-right sm:block">
-                          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
+                          <div className="inline-flex items-center gap-2 border border-[#d8c6a8]/14 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.22em] text-[#d8c6a8]">
                             <CheckCircle2
-                              className="h-3.5 w-3.5 text-[#22C55E]"
+                              className="h-3.5 w-3.5 text-[#E67300]"
                               aria-hidden="true"
                             />
                             Recorded

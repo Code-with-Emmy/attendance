@@ -46,29 +46,29 @@ export function LivenessChallengeSelector({
       initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" }}
-      className="kiosk-panel relative overflow-hidden rounded-[1.8rem] border border-white/10 px-4 py-4 sm:px-5 sm:py-5"
+      className="kiosk-panel relative overflow-hidden rounded-[1.25rem] border border-[#d8c6a8]/18 px-4 py-4 sm:px-5 sm:py-5"
       aria-label="Liveness challenge selector"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_8%,rgba(59,130,246,0.18)_38%,rgba(34,211,238,0.14)_62%,transparent_92%)]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-[#E67300]" />
 
       <div className="relative">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[0.6rem] font-black uppercase tracking-[0.28em] text-slate-400 sm:text-[0.68rem] sm:tracking-[0.3em]">
+            <p className="text-[0.6rem] font-black uppercase tracking-[0.28em] text-[#E67300] sm:text-[0.68rem] sm:tracking-[0.3em]">
               Liveness Fallback
             </p>
             <h2 className="mt-1.5 text-xl font-black tracking-tight text-white sm:mt-2 sm:text-2xl">
               Stay on auto, choose manual when needed
             </h2>
-            <p className="mt-1.5 text-xs font-medium text-slate-400 sm:mt-2 sm:text-sm">
+            <p className="mt-1.5 text-xs font-medium text-[#d8c6a8] sm:mt-2 sm:text-sm">
               The kiosk starts on Auto. Choose a manual challenge only when you
               want to override the random prompt.
             </p>
           </div>
 
-          <div className="inline-flex max-w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 text-[0.6rem] font-black uppercase tracking-[0.2em] text-slate-300 sm:px-3 sm:py-2 sm:text-[0.66rem] sm:tracking-[0.22em]">
+          <div className="inline-flex max-w-fit items-center gap-2 border border-[#E67300]/24 bg-[#E67300]/10 px-2.5 py-1.5 text-[0.6rem] font-black uppercase tracking-[0.2em] text-[#f7e6cf] sm:px-3 sm:py-2 sm:text-[0.66rem] sm:tracking-[0.22em]">
             <ListRestart
-              className="h-3.5 w-3.5 text-blue-300"
+              className="h-3.5 w-3.5 text-[#E67300]"
               aria-hidden="true"
             />
             {selectedChallenge === "AUTO"
@@ -88,17 +88,17 @@ export function LivenessChallengeSelector({
               ease: "easeOut",
             }}
             onClick={() => onSelect("AUTO")}
-            className={`rounded-[1.2rem] border px-3 py-3 text-left transition sm:px-4 sm:py-4 ${
+            className={`border px-3 py-3 text-left transition sm:px-4 sm:py-4 ${
               selectedChallenge === "AUTO"
-                ? "border-blue-400/24 bg-blue-500/14 text-white shadow-[0_18px_40px_rgba(37,99,235,0.2)]"
-                : "border-white/10 bg-white/5 text-white hover:border-blue-400/18 hover:bg-white/8"
+                ? "border-[#E67300]/32 bg-[#E67300]/14 text-white shadow-[0_18px_40px_rgba(230,115,0,0.14)]"
+                : "border-[#d8c6a8]/14 bg-white/5 text-white hover:border-[#E67300]/22 hover:bg-white/8"
             } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             <div
-              className={`flex h-8 w-8 items-center justify-center rounded-[0.9rem] border sm:h-10 sm:w-10 ${
+              className={`flex h-8 w-8 items-center justify-center border sm:h-10 sm:w-10 ${
                 selectedChallenge === "AUTO"
-                  ? "border-white/20 bg-white/10 text-white"
-                  : "border-white/10 bg-slate-950/40 text-blue-300"
+                  ? "border-[#E67300]/30 bg-[#E67300]/14 text-[#ffd8ae]"
+                  : "border-[#d8c6a8]/16 bg-[#021141] text-[#E67300]"
               }`}
             >
               <ListRestart
@@ -109,7 +109,7 @@ export function LivenessChallengeSelector({
             <p className="mt-3 text-xs font-black uppercase tracking-[0.15em] sm:mt-4 sm:text-sm sm:tracking-[0.2em]">
               Auto
             </p>
-            <p className="mt-1.5 text-[0.65rem] font-medium leading-4 text-slate-400 sm:mt-2 sm:text-xs sm:leading-5">
+            <p className="mt-1.5 text-[0.65rem] font-medium leading-4 text-[#d8c6a8] sm:mt-2 sm:text-xs sm:leading-5">
               Randomly choose the liveness prompt each time.
             </p>
           </motion.button>
@@ -131,17 +131,17 @@ export function LivenessChallengeSelector({
                   delay: shouldReduceMotion ? 0 : (index + 1) * 0.03,
                 }}
                 onClick={() => onSelect(challenge)}
-                className={`rounded-[1.2rem] border px-3 py-3 text-left transition sm:px-4 sm:py-4 ${
+                className={`border px-3 py-3 text-left transition sm:px-4 sm:py-4 ${
                   isActive
-                    ? "border-blue-400/24 bg-blue-500/14 text-white shadow-[0_18px_40px_rgba(37,99,235,0.2)]"
-                    : "border-white/10 bg-white/5 text-white hover:border-blue-400/18 hover:bg-white/8"
+                    ? "border-[#E67300]/32 bg-[#E67300]/14 text-white shadow-[0_18px_40px_rgba(230,115,0,0.14)]"
+                    : "border-[#d8c6a8]/14 bg-white/5 text-white hover:border-[#E67300]/22 hover:bg-white/8"
                 } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
               >
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-[0.9rem] border sm:h-10 sm:w-10 ${
+                  className={`flex h-8 w-8 items-center justify-center border sm:h-10 sm:w-10 ${
                     isActive
-                      ? "border-white/20 bg-white/10 text-white"
-                      : "border-white/10 bg-slate-950/40 text-blue-300"
+                      ? "border-[#E67300]/30 bg-[#E67300]/14 text-[#ffd8ae]"
+                      : "border-[#d8c6a8]/16 bg-[#021141] text-[#E67300]"
                   }`}
                 >
                   <Icon
@@ -152,7 +152,7 @@ export function LivenessChallengeSelector({
                 <p className="mt-3 text-xs font-black uppercase tracking-[0.15em] sm:mt-4 sm:text-sm sm:tracking-[0.2em]">
                   {challengeButtonLabel(challenge)}
                 </p>
-                <p className="mt-1.5 text-[0.65rem] font-medium leading-4 text-slate-400 sm:mt-2 sm:text-xs sm:leading-5">
+                <p className="mt-1.5 text-[0.65rem] font-medium leading-4 text-[#d8c6a8] sm:mt-2 sm:text-xs sm:leading-5">
                   {challengeLabel(challenge)}
                 </p>
               </motion.button>

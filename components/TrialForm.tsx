@@ -80,7 +80,7 @@ export function TrialForm() {
   return (
     <form onSubmit={onSubmit} className="site-card rounded-[2rem] p-7">
       <p className="section-label">Start Free Trial</p>
-      <h2 className="mt-4 text-3xl font-semibold text-white">
+      <h2 className="mt-4 text-3xl font-black text-white">
         Create your AttendanceKiosk workspace
       </h2>
 
@@ -170,17 +170,20 @@ export function TrialForm() {
         <div
           className={`mt-5 rounded-2xl px-4 py-3 text-sm ${
             status === "success"
-              ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+              ? "border border-[#E67300]/20 bg-[#E67300]/10 text-[#fff1dd]"
               : "border border-red-400/20 bg-red-400/10 text-red-200"
           }`}
         >
           <p>{message}</p>
           {status === "success" ? (
             <div className="mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-emerald-200">
+              <span className="text-[#ffe0bc]">
                 Sign in with <strong>{loginEmail}</strong>
               </span>
-              <Link href="/login" className="text-blue-200 hover:text-blue-100">
+              <Link
+                href="/login"
+                className="text-[#ffd7ab] hover:text-[#fff1dd]"
+              >
                 Continue to Login
               </Link>
             </div>

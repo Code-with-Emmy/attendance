@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Metadata } from "next";
 import { CheckCircle2, MonitorSmartphone, ShieldCheck } from "lucide-react";
 import { DemoForm } from "@/components/DemoForm";
@@ -15,6 +16,17 @@ export default function DemoPage() {
           <DemoForm />
 
           <aside className="space-y-6">
+            <section className="site-card rounded-[2rem] p-4">
+              <Image
+                src="/illustrations/kiosk-promo-pricing-demo.svg"
+                alt="AttendanceKiosk demo promo illustration showing kiosk verification and live product insights"
+                width={1400}
+                height={1000}
+                priority
+                className="h-auto w-full rounded-[1.4rem] border border-[#d8c6a8]/10 bg-[#041236]/50"
+              />
+            </section>
+
             <section className="site-card rounded-[2rem] p-7">
               <p className="section-label">Why Book a Demo</p>
               <div className="mt-6 space-y-4">
@@ -43,17 +55,17 @@ export default function DemoPage() {
                   return (
                     <div
                       key={item.title}
-                      className="rounded-[1.5rem] border border-white/8 bg-white/5 p-5"
+                      className="rounded-[1.5rem] border border-[#d8c6a8]/10 bg-white/5 p-5"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="rounded-2xl border border-white/8 bg-slate-950/50 p-3 text-blue-200">
+                        <div className="rounded-2xl border border-[#d8c6a8]/10 bg-[#021141]/50 p-3 text-[#ffd7ab]">
                           <Icon className="h-4.5 w-4.5" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-sm font-black text-white">
                             {item.title}
                           </p>
-                          <p className="mt-2 text-sm leading-7 text-slate-400">
+                          <p className="mt-2 text-sm leading-7 text-[#d7c5a4]">
                             {item.description}
                           </p>
                         </div>
@@ -66,14 +78,14 @@ export default function DemoPage() {
 
             <section className="site-card rounded-[2rem] p-7">
               <p className="section-label">What the Demo Covers</p>
-              <ul className="mt-6 space-y-4 text-sm text-slate-300">
-                <li className="rounded-[1.4rem] border border-white/8 bg-white/5 px-4 py-4">
+              <ul className="mt-6 space-y-4 text-sm text-[#f4e7d1]">
+                <li className="rounded-[1.4rem] border border-[#d8c6a8]/10 bg-white/5 px-4 py-4">
                   Kiosk setup and device registration
                 </li>
-                <li className="rounded-[1.4rem] border border-white/8 bg-white/5 px-4 py-4">
+                <li className="rounded-[1.4rem] border border-[#d8c6a8]/10 bg-white/5 px-4 py-4">
                   Admin dashboard, reports, and exception handling
                 </li>
-                <li className="rounded-[1.4rem] border border-white/8 bg-white/5 px-4 py-4">
+                <li className="rounded-[1.4rem] border border-[#d8c6a8]/10 bg-white/5 px-4 py-4">
                   Deployment walkthrough and onboarding expectations
                 </li>
               </ul>

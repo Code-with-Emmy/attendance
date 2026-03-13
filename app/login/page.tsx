@@ -79,37 +79,37 @@ export default function LoginPage() {
         <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           <div className="site-card rounded-4xl p-8 sm:p-10">
             <div className="flex items-center gap-4">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="border border-[#d8c6a8]/10 bg-white/5 p-3">
                 <BrandLogo size="md" className="h-12 w-12" />
               </div>
               <div>
                 <p className="section-label">Admin Login</p>
-                <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white">
+                <h1 className="mt-2 text-4xl font-black tracking-tight text-white">
                   Open the control desk
                 </h1>
               </div>
             </div>
 
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-400">
+            <p className="mt-6 max-w-2xl text-base leading-8 text-[#d7c5a4]">
               Sign in as an administrator to manage kiosks, employee records,
               attendance history, and payroll-ready reports.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-4xl border border-white/8 bg-white/5 p-5">
-                <p className="text-sm font-semibold text-white">
+              <div className="border border-[#d8c6a8]/10 bg-white/5 p-5">
+                <p className="text-sm font-black text-white">
                   Restricted access
                 </p>
-                <p className="mt-3 text-sm leading-7 text-slate-400">
+                <p className="mt-3 text-sm leading-7 text-[#d7c5a4]">
                   Only approved administrators should have credentials for this
                   operational surface.
                 </p>
               </div>
-              <div className="rounded-4xl border border-white/8 bg-white/5 p-5">
-                <p className="text-sm font-semibold text-white">
+              <div className="border border-[#d8c6a8]/10 bg-white/5 p-5">
+                <p className="text-sm font-black text-white">
                   Live attendance oversight
                 </p>
-                <p className="mt-3 text-sm leading-7 text-slate-400">
+                <p className="mt-3 text-sm leading-7 text-[#d7c5a4]">
                   Review events, devices, locations, and exports from one place.
                 </p>
               </div>
@@ -121,10 +121,10 @@ export default function LoginPage() {
             className="site-card rounded-4xl p-8 sm:p-10"
           >
             <p className="section-label">Authentication</p>
-            <h2 className="mt-4 text-3xl font-semibold text-white">
+            <h2 className="mt-4 text-3xl font-black text-white">
               Manager credentials
             </h2>
-            <p className="mt-4 text-sm leading-7 text-slate-400">
+            <p className="mt-4 text-sm leading-7 text-[#d7c5a4]">
               Use the same admin email and password issued for the operational
               console.
             </p>
@@ -156,18 +156,18 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-3 text-sm text-slate-300">
+              <label className="flex items-center gap-3 text-sm text-[#f4e7d1]">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(event) => setRememberMe(event.target.checked)}
-                  className="h-4 w-4 rounded border border-white/10 bg-slate-900 text-blue-500"
+                  className="h-4 w-4 rounded border border-[#d8c6a8]/18 bg-[#021141] text-[#E67300]"
                 />
                 Remember me
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-blue-300 hover:text-blue-200"
+                className="text-sm text-[#ffb15c] hover:text-[#ffd7ab]"
               >
                 Forgot password?
               </Link>
@@ -189,14 +189,14 @@ export default function LoginPage() {
             </button>
 
             <div className="surface-divider mt-7 flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3 text-sm text-slate-400">
-                <ShieldCheck className="h-4.5 w-4.5 text-emerald-300" />
+              <div className="flex items-center gap-3 text-sm text-[#d7c5a4]">
+                <ShieldCheck className="h-4.5 w-4.5 text-[#ffb15c]" />
                 Protected by role-based access, verified sessions, and
                 device-aware admin controls.
               </div>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-sm text-slate-300"
+                className="inline-flex items-center gap-2 text-sm text-[#f4e7d1]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to site

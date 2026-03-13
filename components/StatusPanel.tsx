@@ -18,39 +18,39 @@ type Props = {
 const TONE_STYLES = {
   idle: {
     Icon: ScanFace,
-    border: "border-white/10",
+    border: "border-[#d8c6a8]/16",
     outerGlow: "",
-    iconWrap: "border-white/10 bg-slate-950/40 text-blue-300",
-    badge: "bg-white/5 text-slate-300 ring-1 ring-white/10",
-    topEdge: "rgba(148,163,184,0.08)",
-    accentGlow: "rgba(59,130,246,0.06)",
+    iconWrap: "border-[#d8c6a8]/18 bg-[#021141] text-[#E67300]",
+    badge: "bg-[#E67300]/12 text-[#ffe5c2] ring-1 ring-[#E67300]/18",
+    topEdge: "rgba(230,115,0,0.22)",
+    accentGlow: "rgba(230,115,0,0.08)",
   },
   scanning: {
     Icon: Activity,
-    border: "border-[#3B82F6]/20",
-    outerGlow: "shadow-[0_0_60px_rgba(59,130,246,0.10)]",
-    iconWrap: "border-[#3B82F6]/20 bg-blue-500/12 text-blue-300",
-    badge: "bg-blue-500/12 text-blue-200 ring-1 ring-[#3B82F6]/20",
-    topEdge: "rgba(59,130,246,0.28)",
-    accentGlow: "rgba(59,130,246,0.10)",
+    border: "border-[#E67300]/20",
+    outerGlow: "shadow-[0_0_60px_rgba(230,115,0,0.10)]",
+    iconWrap: "border-[#E67300]/20 bg-[#E67300]/12 text-[#ffd8ae]",
+    badge: "bg-[#E67300]/12 text-[#ffe5c2] ring-1 ring-[#E67300]/20",
+    topEdge: "rgba(230,115,0,0.28)",
+    accentGlow: "rgba(230,115,0,0.10)",
   },
   success: {
     Icon: CheckCircle2,
-    border: "border-[#22C55E]/20",
-    outerGlow: "shadow-[0_0_60px_rgba(34,197,94,0.10)]",
-    iconWrap: "border-[#22C55E]/20 bg-emerald-500/12 text-emerald-300",
-    badge: "bg-emerald-500/12 text-emerald-200 ring-1 ring-[#22C55E]/20",
-    topEdge: "rgba(34,197,94,0.28)",
-    accentGlow: "rgba(34,197,94,0.08)",
+    border: "border-[#E67300]/20",
+    outerGlow: "shadow-[0_0_60px_rgba(230,115,0,0.10)]",
+    iconWrap: "border-[#E67300]/20 bg-[#E67300]/12 text-[#ffd8ae]",
+    badge: "bg-[#E67300]/12 text-[#ffe5c2] ring-1 ring-[#E67300]/20",
+    topEdge: "rgba(230,115,0,0.28)",
+    accentGlow: "rgba(230,115,0,0.08)",
   },
   warning: {
     Icon: AlertTriangle,
-    border: "border-[#F59E0B]/20",
-    outerGlow: "shadow-[0_0_60px_rgba(245,158,11,0.08)]",
-    iconWrap: "border-[#F59E0B]/20 bg-amber-500/12 text-amber-300",
-    badge: "bg-amber-500/12 text-amber-200 ring-1 ring-[#F59E0B]/20",
-    topEdge: "rgba(245,158,11,0.28)",
-    accentGlow: "rgba(245,158,11,0.06)",
+    border: "border-[#d8c6a8]/18",
+    outerGlow: "shadow-[0_0_60px_rgba(216,198,168,0.08)]",
+    iconWrap: "border-[#d8c6a8]/18 bg-white/6 text-[#f7e6cf]",
+    badge: "bg-white/6 text-[#f7e6cf] ring-1 ring-[#d8c6a8]/16",
+    topEdge: "rgba(216,198,168,0.28)",
+    accentGlow: "rgba(216,198,168,0.05)",
   },
   error: {
     Icon: ShieldAlert,
@@ -74,7 +74,7 @@ export function StatusPanel({ status }: Props) {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.42, ease: "easeOut" }}
-      className={`kiosk-panel relative overflow-hidden rounded-[1.8rem] border px-4 py-4 transition-all duration-500 sm:px-6 sm:py-5 ${tone.border} ${tone.outerGlow} shadow-[0_18px_40px_rgba(2,6,23,0.34)]`}
+      className={`kiosk-panel relative overflow-hidden rounded-[1.25rem] border px-4 py-4 transition-all duration-500 sm:px-6 sm:py-5 ${tone.border} ${tone.outerGlow} shadow-[0_18px_40px_rgba(2,17,65,0.22)]`}
       aria-live="polite"
     >
       {/* Dynamic top edge highlight */}
@@ -121,7 +121,7 @@ export function StatusPanel({ status }: Props) {
           </AnimatePresence>
 
           <div className="max-w-3xl">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.34em] text-slate-400">
+            <p className="text-[0.72rem] font-black uppercase tracking-[0.34em] text-[#E67300]">
               {status.eyebrow}
             </p>
             <AnimatePresence mode="wait">
@@ -138,10 +138,10 @@ export function StatusPanel({ status }: Props) {
                 <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-white sm:mt-2 sm:text-2xl md:text-3xl md:text-[2.15rem]">
                   {status.title}
                 </h2>
-                <p className="mt-1.5 text-sm text-slate-300 sm:mt-2 sm:text-base md:text-lg">
+                <p className="mt-1.5 text-sm text-[#f7e6cf] sm:mt-2 sm:text-base md:text-lg">
                   {status.detail}
                 </p>
-                <p className="mt-3 text-sm text-slate-500">{status.helper}</p>
+                <p className="mt-3 text-sm text-[#d8c6a8]">{status.helper}</p>
               </motion.div>
             </AnimatePresence>
           </div>
@@ -162,11 +162,11 @@ export function StatusPanel({ status }: Props) {
       </div>
 
       {status.meta?.length ? (
-        <div className="relative mt-4 flex flex-wrap gap-2 border-t border-white/8 pt-4 sm:mt-5 sm:gap-3 sm:pt-5">
+        <div className="relative mt-4 flex flex-wrap gap-2 border-t border-[#d8c6a8]/10 pt-4 sm:mt-5 sm:gap-3 sm:pt-5">
           {status.meta.map((item) => (
             <span
               key={item}
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-300"
+              className="border border-[#d8c6a8]/14 bg-white/5 px-3 py-1.5 text-sm text-[#f7e6cf]"
             >
               {item}
             </span>

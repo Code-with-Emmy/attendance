@@ -44,21 +44,21 @@ export function ManualAttendanceVerification({
       initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" }}
-      className="kiosk-panel relative overflow-hidden rounded-[1.8rem] border border-amber-400/12 px-4 py-4 sm:px-5 sm:py-5"
+      className="kiosk-panel relative overflow-hidden rounded-[1.25rem] border border-[#d8c6a8]/18 px-4 py-4 sm:px-5 sm:py-5"
       aria-label="Manual attendance verification"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_8%,rgba(245,158,11,0.22)_38%,rgba(251,191,36,0.18)_62%,transparent_92%)]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-[#E67300]" />
 
       <div className="relative">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[0.6rem] font-black uppercase tracking-[0.28em] text-amber-200/80 sm:text-[0.68rem] sm:tracking-[0.3em]">
+            <p className="text-[0.6rem] font-black uppercase tracking-[0.28em] text-[#E67300] sm:text-[0.68rem] sm:tracking-[0.3em]">
               Manual Review Fallback
             </p>
             <h2 className="mt-1.5 text-xl font-black tracking-tight text-white sm:mt-2 sm:text-2xl">
               Use manual verification only when face scan fails
             </h2>
-            <p className="mt-1.5 text-xs font-medium text-slate-400 sm:mt-2 sm:text-sm">
+            <p className="mt-1.5 text-xs font-medium text-[#d8c6a8] sm:mt-2 sm:text-sm">
               This records attendance with an admin review flag. Enter the employee&apos;s exact full name, work email, and the reason biometric verification failed.
             </p>
           </div>
@@ -67,10 +67,10 @@ export function ManualAttendanceVerification({
             type="button"
             disabled={disabled}
             onClick={onToggle}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] transition ${
+            className={`inline-flex items-center gap-2 border px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] transition ${
               open
-                ? "border-amber-400/28 bg-amber-500/14 text-white"
-                : "border-white/10 bg-white/5 text-slate-300"
+                ? "border-[#E67300]/28 bg-[#E67300]/14 text-white"
+                : "border-[#d8c6a8]/16 bg-white/5 text-[#f7e6cf]"
             } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {open ? (
@@ -85,7 +85,7 @@ export function ManualAttendanceVerification({
         {open ? (
           <form onSubmit={onSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr]">
             <label className="block">
-              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
+              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#E67300]">
                 Employee Full Name
               </span>
               <input
@@ -93,12 +93,12 @@ export function ManualAttendanceVerification({
                 onChange={(event) => onChange("fullName", event.target.value)}
                 placeholder="Enter exact employee name"
                 disabled={disabled || submitting}
-                className="w-full rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-400/30"
+                className="w-full border border-[#d8c6a8]/14 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-[#E67300]/30"
               />
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
+              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#E67300]">
                 Work Email
               </span>
               <input
@@ -107,12 +107,12 @@ export function ManualAttendanceVerification({
                 onChange={(event) => onChange("workEmail", event.target.value)}
                 placeholder="employee@company.com"
                 disabled={disabled || submitting}
-                className="w-full rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-400/30"
+                className="w-full border border-[#d8c6a8]/14 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-[#E67300]/30"
               />
             </label>
 
             <label className="block lg:col-span-2">
-              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
+              <span className="mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#E67300]">
                 Why face verification failed
               </span>
               <textarea
@@ -121,18 +121,18 @@ export function ManualAttendanceVerification({
                 placeholder="Example: low light, camera reflection, or repeated recognition failure"
                 disabled={disabled || submitting}
                 rows={3}
-                className="w-full rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-400/30"
+                className="w-full border border-[#d8c6a8]/14 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-[#E67300]/30"
               />
             </label>
 
-            <div className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 lg:col-span-2">
+            <div className="border-l-4 border-[#E67300] bg-white/5 px-4 py-3 text-sm text-[#f7e6cf] lg:col-span-2">
               {actionSelected
                 ? `Manual review will record ${selectedAction.replace("_", " ").toLowerCase()} and flag it for admin review.`
                 : "Choose a manual attendance action above before submitting this fallback."}
             </div>
 
             {error ? (
-              <div className="rounded-[1.2rem] border border-amber-400/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-100 lg:col-span-2">
+              <div className="border border-[#E67300]/18 bg-[#E67300]/10 px-4 py-3 text-sm text-[#ffe5c2] lg:col-span-2">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>{error}</span>
@@ -144,7 +144,7 @@ export function ManualAttendanceVerification({
               <button
                 type="submit"
                 disabled={disabled || submitting || !actionSelected}
-                className="inline-flex items-center gap-2 rounded-full border border-amber-400/28 bg-amber-500/14 px-5 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 border border-[#E67300]/28 bg-[#E67300] px-5 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-[#ff8a1f] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                 {submitting ? "Recording Manual Review..." : "Record Manual Verification"}

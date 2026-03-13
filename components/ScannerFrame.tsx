@@ -74,32 +74,32 @@ function phaseLabel(phase: ScannerPhase) {
 function phaseGlow(phase: ScannerPhase) {
   switch (phase) {
     case "success":
-      return "shadow-[0_20px_48px_rgba(15,23,42,0.08),0_0_36px_rgba(34,197,94,0.12)]";
+      return "shadow-[0_20px_48px_rgba(2,17,65,0.18),0_0_36px_rgba(230,115,0,0.12)]";
     case "warning":
-      return "shadow-[0_20px_48px_rgba(15,23,42,0.08),0_0_36px_rgba(245,158,11,0.10)]";
+      return "shadow-[0_20px_48px_rgba(2,17,65,0.18),0_0_36px_rgba(216,198,168,0.1)]";
     case "error":
       return "shadow-[0_20px_48px_rgba(15,23,42,0.08),0_0_36px_rgba(239,68,68,0.10)]";
     case "liveness":
     case "processing":
-      return "shadow-[0_20px_48px_rgba(15,23,42,0.08),0_0_36px_rgba(59,130,246,0.12)]";
+      return "shadow-[0_20px_48px_rgba(2,17,65,0.18),0_0_36px_rgba(230,115,0,0.12)]";
     default:
-      return "shadow-[0_20px_48px_rgba(15,23,42,0.08),0_0_28px_rgba(34,211,238,0.08)]";
+      return "shadow-[0_20px_48px_rgba(2,17,65,0.18),0_0_28px_rgba(230,115,0,0.08)]";
   }
 }
 
 function phaseBorderColor(phase: ScannerPhase) {
   switch (phase) {
     case "success":
-      return "border-[#22C55E]/20";
+      return "border-[#E67300]/20";
     case "warning":
       return "border-[#F59E0B]/20";
     case "error":
       return "border-[#EF4444]/20";
     case "liveness":
     case "processing":
-      return "border-[#3B82F6]/20";
+      return "border-[#E67300]/20";
     default:
-      return "border-white/10";
+      return "border-[#d8c6a8]/16";
   }
 }
 
@@ -129,22 +129,21 @@ export function ScannerFrame({
       initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.985 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.45, ease: "easeOut" }}
-      className={`kiosk-panel relative overflow-hidden rounded-[1.8rem] ${phaseBorderColor(phase)} border p-3 transition-shadow duration-700 sm:p-4 lg:p-5 ${phaseGlow(phase)}`}
+      className={`kiosk-panel relative overflow-hidden rounded-[1.25rem] ${phaseBorderColor(phase)} border p-3 transition-shadow duration-700 sm:p-4 lg:p-5 ${phaseGlow(phase)}`}
     >
-      {/* Top edge highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_10%,rgba(34,211,238,0.22)_40%,rgba(59,130,246,0.18)_60%,transparent_90%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.1),transparent_24%),linear-gradient(180deg,rgba(2,6,23,0.18),transparent_30%)]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-[#E67300]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(230,115,0,0.12),transparent_24%),linear-gradient(180deg,rgba(2,17,65,0.18),transparent_30%)]" />
 
       <div
-        className={`relative overflow-hidden rounded-[1.5rem] ${phaseBorderColor(phase)} border bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(15,23,42,0.8))] transition-all duration-500`}
+        className={`relative overflow-hidden ${phaseBorderColor(phase)} border bg-[linear-gradient(180deg,rgba(2,17,65,0.96),rgba(7,24,75,0.86))] transition-all duration-500`}
       >
         <div className="relative z-20 flex items-center justify-between border-b border-white/8 bg-slate-950/36 px-3 py-3 backdrop-blur-xl sm:px-5 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[1rem] border border-blue-400/18 bg-blue-500/12 text-blue-300 shadow-[0_10px_24px_rgba(14,165,233,0.10)] sm:h-11 sm:w-11">
+            <div className="flex h-9 w-9 items-center justify-center border border-[#E67300]/18 bg-[#E67300]/12 text-[#ffd8ae] shadow-[0_10px_24px_rgba(230,115,0,0.10)] sm:h-11 sm:w-11">
               <ScanFace className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-slate-400 sm:text-[0.7rem] sm:tracking-[0.34em]">
+              <p className="text-[0.6rem] font-black uppercase tracking-[0.28em] text-[#E67300] sm:text-[0.7rem] sm:tracking-[0.34em]">
                 Biometric Verification
               </p>
               <p className="mt-0.5 text-sm font-semibold text-white sm:mt-1 sm:text-base">
@@ -155,9 +154,9 @@ export function ScannerFrame({
 
           <div className="flex items-center gap-3">
             {/* Phase indicator badge */}
-            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-slate-300 sm:flex sm:px-3 sm:py-1.5 sm:text-[0.68rem] sm:tracking-[0.28em]">
+            <div className="hidden items-center gap-2 border border-[#d8c6a8]/14 bg-white/5 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-[#f7e6cf] sm:flex sm:px-3 sm:py-1.5 sm:text-[0.68rem] sm:tracking-[0.28em]">
               <span
-                className={`h-2.5 w-2.5 rounded-full ${cameraError ? "bg-[#F59E0B]" : phase === "success" ? "bg-[#22C55E]" : "bg-[#22D3EE]"}`}
+                className={`h-2.5 w-2.5 rounded-full ${cameraError ? "bg-[#d8c6a8]" : "bg-[#E67300]"}`}
               />
               {cameraError ? "Fallback UI" : "Secure Feed"}
             </div>
@@ -178,7 +177,7 @@ export function ScannerFrame({
           />
 
           {/* Camera overlay gradients */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(34,211,238,0.14),transparent_28%),radial-gradient(circle_at_20%_18%,rgba(59,130,246,0.1),transparent_22%),linear-gradient(180deg,rgba(2,6,23,0.08),rgba(2,6,23,0.34))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(230,115,0,0.14),transparent_28%),radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.08),transparent_22%),linear-gradient(180deg,rgba(2,17,65,0.08),rgba(2,17,65,0.34))]" />
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/8" />
           <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),inset_0_0_120px_rgba(2,6,23,0.45)]" />
 
@@ -240,11 +239,11 @@ export function ScannerFrame({
           ) : null}
 
           {/* Face region boundary */}
-          <div className="absolute inset-x-[15%] top-[11%] bottom-[11%] rounded-[1.8rem] border border-white/14 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_52%)] shadow-[inset_0_0_0_1px_rgba(59,130,246,0.08),0_0_40px_rgba(59,130,246,0.08)]" />
+          <div className="absolute inset-x-[15%] top-[11%] bottom-[11%] border border-[#d8c6a8]/18 bg-[radial-gradient(circle_at_center,rgba(230,115,0,0.08),transparent_52%)] shadow-[inset_0_0_0_1px_rgba(230,115,0,0.06),0_0_40px_rgba(230,115,0,0.08)]" />
 
           {/* Center pulse ring */}
           <motion.div
-            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#22D3EE]/20 bg-[radial-gradient(circle,rgba(34,211,238,0.16),rgba(34,211,238,0.03)_42%,transparent_72%)] sm:h-56 sm:w-56 md:h-72 md:w-72"
+            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#E67300]/20 bg-[radial-gradient(circle,rgba(230,115,0,0.16),rgba(230,115,0,0.03)_42%,transparent_72%)] sm:h-56 sm:w-56 md:h-72 md:w-72"
             animate={
               shouldReduceMotion || !scanningActive
                 ? undefined
@@ -266,7 +265,7 @@ export function ScannerFrame({
 
           {/* Secondary outer pulse ring */}
           <motion.div
-            className="absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#3B82F6]/10 sm:h-68 sm:w-68 md:h-88 md:w-88"
+            className="absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#d8c6a8]/10 sm:h-68 sm:w-68 md:h-88 md:w-88"
             animate={
               shouldReduceMotion || !scanningActive
                 ? undefined

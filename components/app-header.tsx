@@ -31,8 +31,8 @@ function linkClass(isActive: boolean) {
   return [
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.22em] transition-all",
     isActive
-      ? "border border-blue-400/30 bg-blue-500/16 text-blue-100 shadow-[0_14px_34px_rgba(37,99,235,0.2)]"
-      : "border border-white/10 bg-white/5 text-slate-300 hover:border-blue-400/24 hover:bg-white/8 hover:text-white",
+      ? "border border-[#E67300]/30 bg-[#E67300]/14 text-[#fff1dd] shadow-[0_14px_34px_rgba(230,115,0,0.18)]"
+      : "border border-[#d8c6a8]/10 bg-white/5 text-[#d7c5a4] hover:border-[#E67300]/24 hover:bg-white/8 hover:text-white",
   ].join(" ");
 }
 
@@ -47,8 +47,8 @@ export function AppHeader({
 
   return (
     <header className="site-card relative mb-6 overflow-hidden rounded-4xl px-4 py-4 sm:mb-10 sm:px-6 sm:py-6 lg:px-7">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_6%,rgba(59,130,246,0.34)_36%,rgba(34,197,94,0.16)_62%,transparent_94%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(34,197,94,0.08),transparent_24%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_6%,rgba(230,115,0,0.34)_36%,rgba(216,198,168,0.16)_62%,transparent_94%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,115,0,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(216,198,168,0.08),transparent_24%)]" />
 
       <div className="relative flex flex-col gap-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between sm:gap-5">
@@ -65,7 +65,7 @@ export function AppHeader({
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.34em] text-slate-400">
                   AttendanceKiosk
                 </p>
-                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/18 bg-emerald-400/10 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.22em] text-emerald-200">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#E67300]/18 bg-[#E67300]/10 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.22em] text-[#ffd7ab]">
                   <ShieldCheck className="h-3.5 w-3.5" />
                   {isAdmin ? "Admin Control" : "Secure Access"}
                 </span>
@@ -75,7 +75,7 @@ export function AppHeader({
               </h1>
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-medium">
-                  <Building2 className="h-4 w-4 text-blue-300" />
+                  <Building2 className="h-4 w-4 text-[#ffb15c]" />
                   {email}
                 </span>
               </div>
@@ -85,10 +85,10 @@ export function AppHeader({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/kiosk"
-              className="inline-flex h-10 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-[0.68rem] font-black uppercase tracking-[0.22em] text-slate-100 transition hover:border-blue-400/24 hover:bg-white/8 sm:h-11"
+              className="inline-flex h-10 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-[0.68rem] font-black uppercase tracking-[0.22em] text-slate-100 transition hover:border-[#E67300]/24 hover:bg-white/8 sm:h-11"
             >
               Open Kiosk
-              <ArrowRight className="h-4 w-4 text-blue-300" />
+              <ArrowRight className="h-4 w-4 text-[#ffb15c]" />
             </Link>
             <button
               type="button"

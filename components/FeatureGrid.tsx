@@ -8,7 +8,7 @@ export function FeatureGrid() {
     <section id="features" className="site-container py-18">
       <div className="max-w-3xl">
         <p className="section-label">Features</p>
-        <h2 className="mt-4 section-heading text-white">
+        <h2 className="mt-4 section-heading text-[#021141]">
           Replace paper, PINs, and guesswork with a secure attendance operating
           layer.
         </h2>
@@ -30,15 +30,15 @@ export function FeatureGrid() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.35, delay: index * 0.04 }}
-              className="site-card hover-lift rounded-[1.6rem] p-6"
+              className="site-card hover-lift rounded-[1.4rem] p-6"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-400/18 bg-blue-500/10 text-blue-200">
+              <div className="flex h-12 w-12 items-center justify-center border border-[#E67300]/18 bg-[#E67300]/10 text-[#ffd7ab]">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-white">
+              <h3 className="mt-5 text-xl font-black text-white">
                 {feature.title}
               </h3>
-              <p className="mt-3 text-sm leading-7 text-slate-400">
+              <p className="mt-3 text-sm leading-7 text-[#d7c5a4]">
                 {feature.description}
               </p>
             </motion.article>

@@ -1,157 +1,168 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import {
-  ArrowRight,
-  BadgeCheck,
-  CheckCircle2,
-  ShieldCheck,
+  Calculator,
+  Database,
+  EyeOff,
+  FileText,
+  Fingerprint,
+  Lock,
+  UserX,
 } from "lucide-react";
 import { CTASection } from "@/components/CTASection";
-import { FeatureGrid } from "@/components/FeatureGrid";
+import { Features } from "@/components/Features";
+import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
-import { PricingCards } from "@/components/PricingCards";
+import { Navbar } from "@/components/Navbar";
+import { PricingPreview } from "@/components/PricingPreview";
 import { ProductScreenshots } from "@/components/ProductScreenshots";
-import { PublicSiteShell } from "@/components/PublicSiteShell";
-import { ClientSplash } from "@/components/ClientSplash";
-import { problemPoints } from "@/lib/site-content";
 import { listActivePlans } from "@/lib/billing/getPlanByCode";
+import { problemPoints } from "@/lib/site-content";
 
 export const metadata: Metadata = {
-  title: "Face-Verified Attendance",
+  title: "AttendanceKiosk | Face-Verified Attendance for Modern Workplaces",
 };
 
 export const dynamic = "force-dynamic";
+
+const problemIcons = [UserX, FileText, Calculator, EyeOff];
+const securityItems = [
+  {
+    icon: Fingerprint,
+    title: "Face embeddings instead of raw photos",
+    description:
+      "Verification is designed around face embeddings so organizations can minimize raw image retention.",
+  },
+  {
+    icon: FileText,
+    title: "Tamper-evident audit logs",
+    description:
+      "Attendance events and admin changes are recorded for review and operational accountability.",
+  },
+  {
+    icon: Lock,
+    title: "Role-based admin access",
+    description:
+      "Separate permissions for HR, operations, branch managers, and finance reduce unnecessary exposure.",
+  },
+  {
+    icon: Database,
+    title: "Secure Postgres database",
+    description:
+      "Attendance data, devices, and organization settings are backed by durable database storage.",
+  },
+];
+
+function SectionIntro({
+  eyebrow,
+  title,
+  body,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="max-w-3xl">
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#3B82F6]">
+        {eyebrow}
+      </p>
+      <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+        {title}
+      </h2>
+      <p className="mt-5 text-lg leading-8 text-slate-400">{body}</p>
+    </div>
+  );
+}
 
 export default async function HomePage() {
   const plans = await listActivePlans();
 
   return (
-    <ClientSplash>
-      <PublicSiteShell>
+    <div className="min-h-screen bg-[#020617] text-[#E5E7EB]">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(34,197,94,0.08),transparent_18%)]" />
+      <Navbar />
+      <main>
         <Hero />
 
-        <section className="site-container py-18">
-          <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-            <div>
-              <p className="section-label">The Problem</p>
-              <h2 className="mt-4 section-heading text-white">
-                Attendance breaks down when trust, visibility, and reporting are
-                separated.
-              </h2>
-              <p className="section-copy mt-5">
-                Most teams are still trying to control time theft, manual
-                timesheets, and payroll errors with systems that were never
-                built for biometric verification or multi-location oversight.
-              </p>
-            </div>
+        <section className="border-y border-white/10 bg-[#020617]">
+          <div className="site-container py-20">
+            <SectionIntro
+              eyebrow="The Problem"
+              title="Manual attendance is outdated."
+              body="Paper sheets, shared PINs, and manual reconciliation make attendance unreliable. AttendanceKiosk replaces weak check-ins with a secure biometric workflow that updates instantly."
+            />
 
-            <div className="grid gap-5 md:grid-cols-2">
-              {problemPoints.map((item) => (
-                <article
-                  key={item.title}
-                  className="site-card rounded-[1.7rem] p-6"
-                >
-                  <p className="text-lg font-semibold text-white">
-                    {item.title}
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate-400">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
+            <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {problemPoints.map((item, index) => {
+                const Icon = problemIcons[index] ?? FileText;
+
+                return (
+                  <article
+                    key={item.title}
+                    className="rounded-[1.6rem] border border-white/10 bg-[rgba(15,23,42,0.85)] p-6 shadow-[0_18px_60px_rgba(2,6,23,0.32)] backdrop-blur-xl"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#93C5FD]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="mt-5 font-heading text-xl font-semibold text-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-400">
+                      {item.description}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        <FeatureGrid />
+        <Features />
         <HowItWorks />
         <ProductScreenshots />
 
-        <section className="site-container py-18">
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="site-card rounded-4xl p-8 sm:p-10">
-              <p className="section-label">Security Preview</p>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white">
-                Designed to earn trust from HR, operations, and security teams.
-              </h2>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400">
-                From liveness checks to audit visibility and role-based access,
-                the product is positioned for organizations that need more than
-                a simple clock-in app.
-              </p>
+        <section id="security" className="bg-[#020617]">
+          <div className="site-container py-20">
+            <SectionIntro
+              eyebrow="Security"
+              title="Security and privacy by design."
+              body="AttendanceKiosk is built for organizations that need strong verification, disciplined access control, and auditability from kiosk device to database."
+            />
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[1.4rem] border border-white/8 bg-white/5 p-5">
-                  <div className="flex items-center gap-3 text-emerald-300">
-                    <BadgeCheck className="h-5 w-5" />
-                    <span className="font-semibold text-white">
-                      Liveness verification
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-slate-400">
-                    Reject spoofed attendance attempts before records are
-                    written.
-                  </p>
-                </div>
+            <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {securityItems.map((item) => {
+                const Icon = item.icon;
 
-                <div className="rounded-[1.4rem] border border-white/8 bg-white/5 p-5">
-                  <div className="flex items-center gap-3 text-blue-200">
-                    <ShieldCheck className="h-5 w-5" />
-                    <span className="font-semibold text-white">
-                      Device and access controls
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-slate-400">
-                    Keep kiosks device-bound and restrict sensitive workflows by
-                    role.
-                  </p>
-                </div>
-              </div>
-
-              <Link href="/security" className="cta-secondary mt-8">
-                View Security Details
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="site-card rounded-4xl p-8 sm:p-10">
-              <p className="section-label">Pricing Preview</p>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white">
-                Launch fast with self-serve plans or move into a guided rollout.
-              </h2>
-              <div className="mt-8 space-y-4">
-                {[
-                  "Starter for single-kiosk deployments",
-                  "Growth for multiple kiosks and shift support",
-                  "Pro for payroll exports and multi-branch teams",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 rounded-[1.4rem] border border-white/8 bg-white/5 px-4 py-4"
+                return (
+                  <article
+                    key={item.title}
+                    className="rounded-[1.6rem] border border-white/10 bg-[rgba(15,23,42,0.85)] p-6 shadow-[0_18px_60px_rgba(2,6,23,0.32)] backdrop-blur-xl"
                   >
-                    <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-emerald-300" />
-                    <span className="text-sm text-slate-300">{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/pricing" className="cta-primary mt-8">
-                View Pricing
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#3B82F6]/20 bg-[#3B82F6]/10 text-[#93C5FD]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="mt-5 font-heading text-xl font-semibold text-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-400">
+                      {item.description}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        <section className="site-container pb-8">
-          <PricingCards plans={plans} variant="preview" />
-        </section>
+        <PricingPreview plans={plans} />
 
         <CTASection
-          title="Ready to eliminate manual attendance and time theft?"
-          description="See how AttendanceKiosk fits your operating model, rollout timeline, and security requirements before you deploy to your first device."
+          title="Ready to modernize your attendance system?"
+          description="Book a guided demo, start a free trial, or move directly into a production rollout with a secure biometric kiosk flow your team can trust."
         />
-      </PublicSiteShell>
-    </ClientSplash>
+      </main>
+      <Footer />
+    </div>
   );
 }

@@ -23,10 +23,10 @@ export default function TrialPage() {
 
           <aside className="site-card rounded-[2rem] p-7">
             <p className="section-label">Onboarding Preview</p>
-            <h2 className="mt-4 text-3xl font-semibold text-white">
+            <h2 className="mt-4 text-3xl font-black text-white">
               What happens after signup
             </h2>
-            <p className="mt-4 text-base leading-8 text-slate-400">
+            <p className="mt-4 text-base leading-8 text-[#d7c5a4]">
               The free trial is designed to get a real kiosk flow running
               quickly so you can evaluate scan speed, admin usability, and
               reporting quality before purchase.
@@ -36,22 +36,22 @@ export default function TrialPage() {
               {onboardingSteps.map((item, index) => (
                 <div
                   key={item}
-                  className="rounded-[1.5rem] border border-white/8 bg-white/5 px-5 py-4"
+                  className="rounded-[1.5rem] border border-[#d8c6a8]/10 bg-white/5 px-5 py-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E67300] text-sm font-black text-white">
                       {index + 1}
                     </div>
-                    <span className="font-medium text-white">{item}</span>
+                    <span className="font-black text-white">{item}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 rounded-[1.5rem] border border-emerald-400/18 bg-emerald-400/10 p-5">
+            <div className="mt-8 rounded-[1.5rem] border border-[#E67300]/18 bg-[#E67300]/10 p-5">
               <span className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
-                <span className="text-sm leading-7 text-emerald-100">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#ffd7ab]" />
+                <span className="text-sm leading-7 text-[#fff1dd]">
                   This flow now provisions the tenant, starter subscription, and
                   login account needed to enter the admin console.
                 </span>

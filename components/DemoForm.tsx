@@ -73,7 +73,7 @@ export function DemoForm() {
   return (
     <form onSubmit={onSubmit} className="site-card rounded-[2rem] p-7">
       <p className="section-label">Book Demo</p>
-      <h2 className="mt-4 text-3xl font-semibold text-white">
+      <h2 className="mt-4 text-3xl font-black text-white">
         Schedule a guided product walkthrough
       </h2>
 
@@ -164,7 +164,7 @@ export function DemoForm() {
         <div
           className={`mt-5 rounded-2xl px-4 py-3 text-sm ${
             status === "success"
-              ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+              ? "border border-[#E67300]/20 bg-[#E67300]/10 text-[#ffe0bc]"
               : "border border-red-400/20 bg-red-400/10 text-red-200"
           }`}
         >

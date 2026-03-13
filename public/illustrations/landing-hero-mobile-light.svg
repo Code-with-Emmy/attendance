@@ -1,0 +1,76 @@
+<svg width="900" height="1200" viewBox="0 0 900 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="86" y1="34" x2="734" y2="1126" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F1"/>
+      <stop offset="1" stop-color="#F6E5CC"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="154" y1="136" x2="712" y2="986" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A204D"/>
+      <stop offset="1" stop-color="#021141"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FF9835"/>
+      <stop offset="1" stop-color="#D86500"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(704 160) rotate(130.792) scale(234.217 260.17)">
+      <stop stop-color="#E67300" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#E67300" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="1200" rx="36" fill="url(#bg)"/>
+  <circle cx="704" cy="160" r="230" fill="url(#glow)"/>
+
+  <g opacity="0.08">
+    <path d="M72 122H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 238H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 354H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 470H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 586H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 702H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 818H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 934H828" stroke="#021141" stroke-width="2"/>
+    <path d="M72 1050H828" stroke="#021141" stroke-width="2"/>
+  </g>
+
+  <text x="110" y="116" fill="#E67300" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="5">ATTENDANCEKIOSK</text>
+  <text x="110" y="214" fill="#021141" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700">Secure face</text>
+  <text x="110" y="294" fill="#E67300" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700">attendance</text>
+  <text x="110" y="346" fill="#314160" font-family="Arial, Helvetica, sans-serif" font-size="28">Built for modern teams, strict verification,</text>
+  <text x="110" y="388" fill="#314160" font-family="Arial, Helvetica, sans-serif" font-size="28">and payroll-ready tracking.</text>
+
+  <rect x="110" y="438" width="228" height="60" rx="8" fill="url(#orange)"/>
+  <text x="224" y="476" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle">BOOK DEMO</text>
+
+  <rect x="362" y="438" width="248" height="60" rx="8" fill="#FFFFFF" stroke="#D8C6A8" stroke-width="2"/>
+  <text x="486" y="476" fill="#021141" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle">START TRIAL</text>
+
+  <rect x="110" y="556" width="680" height="546" rx="34" fill="url(#panel)"/>
+  <rect x="110" y="556" width="12" height="546" fill="url(#orange)"/>
+  <rect x="156" y="602" width="588" height="454" rx="28" stroke="#D8C6A8" stroke-opacity="0.14" stroke-width="2"/>
+
+  <text x="180" y="652" fill="#E67300" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">LIVE SCANNER</text>
+  <text x="180" y="704" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Manual or auto-ready</text>
+
+  <rect x="180" y="744" width="270" height="246" rx="24" fill="#061942" stroke="#E67300" stroke-opacity="0.16" stroke-width="2"/>
+  <rect x="212" y="776" width="206" height="182" rx="20" fill="#021141"/>
+  <path d="M236 800H292" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M338 800H394" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M236 934H292" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M338 934H394" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M236 800V856" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M394 800V856" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M236 878V934" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M394 878V934" stroke="#FFB15C" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="315" cy="856" r="54" fill="#E67300" fill-opacity="0.10" stroke="#E67300" stroke-opacity="0.24" stroke-width="2"/>
+  <circle cx="315" cy="838" r="24" fill="#F7E6CF"/>
+  <path d="M268 920C281 890 296 876 315 876C334 876 349 890 362 920" fill="#F7E6CF"/>
+
+  <rect x="482" y="744" width="244" height="108" rx="22" fill="#061942"/>
+  <text x="512" y="780" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="3">MATCH</text>
+  <text x="512" y="832" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">98.4%</text>
+
+  <rect x="482" y="876" width="244" height="114" rx="22" fill="#061942"/>
+  <text x="512" y="912" fill="#D8C6A8" fill-opacity="0.84" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="3">STATUS</text>
+  <text x="512" y="964" fill="#FFCF8E" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Clocked in</text>
+</svg>
